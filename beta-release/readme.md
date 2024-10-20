@@ -103,10 +103,19 @@ Key Policy
     - HOME_REGION --> set to the value of the "ap-southeast-5"
     - NOTE: HOME_REGION is required as temporary measure until Control Tower is available in Malaysia ap-southeast-5 region.
 6. Run python scripts in management account in the following order:
-    - Setup Organization OU folders, create Service Control Policies and attach to specific OUs. Execute this bash shell command "python3 organization-config.py"
-    - Configure AWS account default security settings e.g. EBS Default Encryption, S3 block public access, EBS block public access, AMI block public access, EC2 IMDSv2 defaults and alternate security contact information. Execute this bash shell command "python3 account-config.py". 
-    - Configure delegated administrator for each of these AWS Security Services (Security Hub, GuardDuty, Inspector, Firewall Manager). Certain services (Detective, Inspector, Firewall Manager) have been commented out contingent on the service's availability in the region. Execute this bash shell command "python3 security-config.py delegated_admin_account=123456789012"
-7. Enable Control Tower in management account. Follow these instructions (TODO: specify link)
+    - Setup Organization OU folders, create Service Control Policies and attach to specific OUs. Execute this bash shell command 
+    ```
+    python3 organization-config.py
+    ```
+    - Configure AWS account default security settings e.g. EBS Default Encryption, S3 block public access, EBS block public access, AMI block public access, EC2 IMDSv2 defaults and alternate security contact information. Execute this bash shell command 
+    ```
+    python3 account-config.py
+    ``` 
+    - Configure delegated administrator for each of these AWS Security Services (Security Hub, GuardDuty, Inspector, Firewall Manager). Certain services (Detective, Inspector, Firewall Manager) have been commented out contingent on the service's availability in the region. Execute this bash shell command 
+    ```
+    python3 security-config.py delegated_admin_account=123456789012
+    ``` 
+7. Enable Control Tower in management account. Follow these instructions from (AWS Control Tower quick start guide)[https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html]
     - Enable IAM identity Center
     - Specify Region Deny, to only govern these regions (us-east-1, ap-southeast-1 and ap-southeast-2)
 8. Login to new network account to run CloudFormation script "central-network-account.json". Name the new CloudFormation Stack name it as "central-network"
@@ -167,6 +176,15 @@ This will be used for all of the organization users to access the AWS environmen
 2. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
+        - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
+        - [ELB.3] Classic Load Balancer listeners should be configured with HTTPS or TLS termination
+        - [ELB.7] Classic Load Balancers should have connection draining enabled
+        - [ELB.8] Classic Load Balancers with SSL listeners should use a predefined security policy that has strong AWS Configuration
+        - [ELB.9] Classic Load Balancers should have cross-zone load balancing enabled
+        - [ELB.10] Classic Load Balancer should span multiple Availability Zones
+        - [ELB.14] Classic Load Balancer should be configured with defensive or strictest desync mitigation mode
+        - [Macie.1] Amazon Macie should be enabled
+        - [Macie.2] Macie automated sensitive data discovery should be enabled
 3. Create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
 ```
 {
