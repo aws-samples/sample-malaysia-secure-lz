@@ -164,9 +164,9 @@ This will be used for all of the organization users to access the AWS environmen
 
 ## Configure AWS Security Services
 1. Login to the delegated administration account for security i.e. audit account.
-2. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). Disable specific Security Hub findings that are no longer required.
-    - IAM Hardware token for root
-    - 
+2. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). 
+    - Disable specific Security Hub findings that are no longer required.
+        - [IAM.6] Hardware MFA should be enabled for the root user
 3. Create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
 ```
 {
