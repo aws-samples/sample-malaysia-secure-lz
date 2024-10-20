@@ -1,8 +1,8 @@
-#Malaysia LZA (Beta)
+# Malaysia LZA (Beta)
 
 This beta release of the landing zone accelerator (LZA) is for Malaysia public sector agencies and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. CGSO cloud requirements are transposed into configurable infrastrcuture as code (IaC) scripts. 
 
-##Prerequisites:
+## Prerequisites:
 Complete these validation checks before starting the deployment of the LZA. 
 1. AWS management account has been created. 
 2. AWS environment does not have any running workloads and services. 
@@ -13,7 +13,7 @@ Complete these validation checks before starting the deployment of the LZA.
 7. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
 8. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
 
-##Deployment Steps
+## Deployment Steps
 1. Identify the AWS Organization identifer (format o-XXXXXX) from the AWS Organization console of the management account. This is an input parameter to the script.
 2. Identify the OU identifer (format ou-XXXXXX) of the Infrastructure OU. Capture the OU to share the new Transit-Gateway resource. 
 aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> --query 'OrganizationalUnit.Arn'
@@ -112,22 +112,22 @@ Key Policy
 8. Login to new network account to run CloudFormation script "central-network-account.json". Name the new CloudFormation Stack name it as "central-network"
 
 
-##Post CloudFormation deployment configuration
+## Post CloudFormation deployment configuration
 1. Set route to Firewall Endpoints in Route Tables
-NetworkInspection-Pub-A: 10.0.0.0/8 to firewall endpoint for that AZ-A
-NetworkInspection-Pub-B: 10.0.0.0/8 to firewall endpoint for that AZ-B
-NetworkInspection-Pub-C: 10.0.0.0/8 to firewall endpoint for that AZ-C
-NetworkInspection-TgwAttach-A: 0.0.0.0/0 to firewall endpoint for that AZ-A
-NetworkInspection-TgwAttach-B: 0.0.0.0/0 to firewall endpoint for that AZ-B
-NetworkInspection-TgwAttach-C: 0.0.0.0/0 to firewall endpoint for that AZ-C
+- NetworkInspection-Pub-A: 10.0.0.0/8 to firewall endpoint for that AZ-A
+- NetworkInspection-Pub-B: 10.0.0.0/8 to firewall endpoint for that AZ-B
+- NetworkInspection-Pub-C: 10.0.0.0/8 to firewall endpoint for that AZ-C
+- NetworkInspection-TgwAttach-A: 0.0.0.0/0 to firewall endpoint for that AZ-A
+- NetworkInspection-TgwAttach-B: 0.0.0.0/0 to firewall endpoint for that AZ-B
+- NetworkInspection-TgwAttach-C: 0.0.0.0/0 to firewall endpoint for that AZ-C
 
 2. Set up Transit Gateway Attachment in Spoke/Member VPCs to Network-Transit-Gateway
 
 3. Set route and propagation to Spoke/Member VPCs 
-For Transit Gateway Route Table “Network-Main-Spoke” 
-- add Association to Workload-App-TgwAttach
-For Transit Gateway Route Table “Network-Main-Core” 
-- add Propagation for Workload-App-TgwAttach
+- For Transit Gateway Route Table “Network-Main-Spoke” 
+    - add Association to Workload-App-TgwAttach
+- For Transit Gateway Route Table “Network-Main-Core” 
+    - add Propagation for Workload-App-TgwAttach
 
 4. Setup Firewall unmanaged rule group (Allow-Domains); set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
 ```
@@ -153,7 +153,7 @@ For Transit Gateway Route Table “Network-Main-Core”
 
 7. Configure the Transit Gateway routetable and propagation for the VPN connection that is attached to Transit Gateway
 
-##Configure IAM Identity Center (IDC)
+## Configure IAM Identity Center (IDC)
 This will be used for all of the organization users to access the AWS environment.
 1. Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
 2. Configure these required IAM Permission Sets. (TODO: specify the permissions in table)
@@ -162,7 +162,7 @@ This will be used for all of the organization users to access the AWS environmen
     - LZA-Security-Access
 3. Configure the default identity directory to set MFA is required for all sign-ins. 
 
-##Configure AWS Security Services
+## Configure AWS Security Services
 1. Login to the delegated administration account for security i.e. audit account.
 2. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). Disable specific Security Hub findings that are no longer required.
     - IAM Hardware token for root
@@ -183,10 +183,10 @@ This will be used for all of the organization users to access the AWS environmen
 }
 ```
 
-##Configure AWS Systems Manager (SSM) for EC2 inventory management
+## Configure AWS Systems Manager (SSM) for EC2 inventory management
 1. Login to the delegated administration account for SSM.
 1. Configure SSM Host Configuration Management Quick Start for the OUs (Workloads and Infrastructure). This ensures that all EC2 instances are managed by SSM Fleet Manager.
 2. Enable "Default Host Configuration" from SSM Fleet Manager.
 
-##Configure AWS Backup Plan and Policies
+## Configure AWS Backup Plan and Policies
 (TODO: Provide AWS Backup plan CloudFormation)
