@@ -1,0 +1,36 @@
+enable: true
+organizationalUnits:
+  - name: Security
+  - name: Infrastructure
+  - name: Sandbox
+  - name: Forensic
+  - name: Workloads
+  - name: Suspended
+    ignore: true  
+serviceControlPolicies:
+  - name: CustomGuardRails
+    description: >
+      Malaysia Accelerator GuardRails
+    policy: service-control-policies/my-lza-guardrails.json
+    type: customerManaged
+    deploymentTargets:
+      organizationalUnits:
+        - Infrastructure
+        - Security
+  - name: CustomDataGuardRails
+    description: >
+      Malaysia Accelerator GuardRails
+    policy: service-control-policies/my-lza-data-guardrails.json
+    type: customerManaged
+    deploymentTargets:
+      organizationalUnits:
+        - Infrastructure
+        - Security
+taggingPolicies: []
+backupPolicies:
+  - name: BackupPolicy
+    description: Organization Backup Policy
+    policy: backup-policies/backup-plan.json
+    deploymentTargets:
+      organizationalUnits:
+        - Root

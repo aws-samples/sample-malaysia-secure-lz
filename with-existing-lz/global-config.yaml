@@ -1,0 +1,37 @@
+homeRegion: ap-southeast-1
+enabledRegions:
+  - ap-southeast-1
+managementAccountAccessRole: AWSControlTowerExecution
+cloudwatchLogRetentionInDays: 365
+cdkOptions:
+  centralizeBuckets: true
+  useManagementAccessRole: true
+terminationProtection: true
+controlTower:
+  enable: true
+  controls: []
+logging:
+  account: LogArchive
+  cloudtrail:
+    enable: false
+    organizationTrail: false
+    organizationTrailSettings:
+      multiRegionTrail: true
+      globalServiceEvents: true
+      managementEvents: true
+      s3DataEvents: true
+      lambdaDataEvents: true
+      sendToCloudWatchLogs: true
+      apiErrorRateInsight: false
+      apiCallRateInsight: false
+    accountTrails: []
+    lifecycleRules: []
+  sessionManager:
+    sendToCloudWatchLogs: false
+    sendToS3: false
+    excludeRegions: []
+    excludeAccounts: []
+    lifecycleRules: []
+    attachPolicyToIamRoles: []
+tags: []
+iamRoleSsmParameters: []

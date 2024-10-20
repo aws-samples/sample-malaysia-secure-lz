@@ -1,0 +1,14 @@
+enable: true
+organizationalUnits:
+  - name: Security
+  - name: Infrastructure
+  - name: Workloads
+  - name: Workloads/Non-Production
+  - name: Workloads/Production
+  - name: Sandbox
+  - name: temp
+  - name: Suspended
+    ignore: true
+serviceControlPolicies: []
+taggingPolicies: []
+backupPolicies: []

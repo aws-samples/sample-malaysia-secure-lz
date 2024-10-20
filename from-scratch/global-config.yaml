@@ -1,0 +1,97 @@
+homeRegion: ap-southeast-1
+enabledRegions:
+  - ap-southeast-1
+managementAccountAccessRole: AWSControlTowerExecution
+cloudwatchLogRetentionInDays: 365
+cdkOptions:
+  centralizeBuckets: true
+  useManagementAccessRole: true
+terminationProtection: true
+controlTower:
+  enable: true
+  landingZone:
+    version: '3.3'
+    logging:
+      loggingBucketRetentionDays: 365
+      accessLoggingBucketRetentionDays: 365
+      organizationTrail: true
+    security:
+      enableIdentityCenterAccess: true
+snsTopics:
+  deploymentTargets:
+    organizationalUnits:
+      - Root
+  topics:
+    - name: Security
+      emailAddresses:
+        - kuokk+lzasecuritynotifications@amazon.com
+logging:
+  account: LogArchive
+  cloudtrail:
+    enable: false
+    organizationTrail: false
+    organizationTrailSettings:
+      multiRegionTrail: true
+      globalServiceEvents: true
+      managementEvents: true
+      s3DataEvents: true
+      lambdaDataEvents: true
+      sendToCloudWatchLogs: true
+      apiErrorRateInsight: false
+      apiCallRateInsight: false
+    accountTrails: []
+    lifecycleRules: []
+  sessionManager:
+    sendToCloudWatchLogs: true
+    sendToS3: true
+    excludeRegions: []
+    excludeAccounts: []
+    lifecycleRules: []
+    attachPolicyToIamRoles:
+    - EC2-Default-SSM-AD-Role
+  accessLogBucket:
+    lifecycleRules:
+      - enabled: true
+        abortIncompleteMultipartUpload: 7
+        expiration: 1000
+        noncurrentVersionExpiration: 1000
+        transitions:
+          - storageClass: GLACIER_IR
+            transitionAfter: 365
+        noncurrentVersionTransitions:
+          - storageClass: GLACIER_IR
+            transitionAfter: 365
+  centralLogBucket:
+    lifecycleRules:
+      - enabled: true
+        abortIncompleteMultipartUpload: 7
+        expiration: 1000
+        noncurrentVersionExpiration: 1000
+        transitions:
+          - storageClass: GLACIER_IR
+            transitionAfter: 365
+        noncurrentVersionTransitions:
+          - storageClass: GLACIER_IR
+            transitionAfter: 365
+    s3ResourcePolicyAttachments:
+      - policy: bucket-policies/central-log-bucket.json
+  elbLogBucket:
+    lifecycleRules:
+      - enabled: true
+        abortIncompleteMultipartUpload: 7
+        expiration: 1000
+        noncurrentVersionExpiration: 1000
+        transitions:
+          - storageClass: GLACIER_IR
+            transitionAfter: 365
+        noncurrentVersionTransitions:
+          - storageClass: GLACIER_IR
+            transitionAfter: 365
+tags: []
+iamRoleSsmParameters: []
+backup:
+  vaults:
+    - name: BackupVault
+      deploymentTargets:
+        organizationalUnits:
+          - Root

@@ -1,0 +1,86 @@
+policySets: []
+roleSets:
+  - deploymentTargets:
+      organizationalUnits:
+        - Root
+    roles:
+      - name: EC2-Default-SSM-AD-Role
+        instanceProfile: true
+        assumedBy:
+          - type: service
+            principal: ec2.amazonaws.com
+        policies:
+          awsManaged:
+            - AmazonSSMManagedInstanceCore
+            - AmazonSSMDirectoryServiceAccess
+            - CloudWatchAgentServerPolicy
+      # This role is utilized by the Backup Plans defined in global-config.yaml
+      # We create this role in every account where we plan to have Backup Plans
+      # and Backup Vaults
+      - name: Backup-Role
+        assumedBy:
+          - type: service
+            principal: backup.amazonaws.com
+        policies:
+          awsManaged:
+            - service-role/AWSBackupServiceRolePolicyForBackup
+            - service-role/AWSBackupServiceRolePolicyForRestores
+      # This role is utilized by the Budgets Config defined in global-config.yaml
+      # We create this role in every account where we plan to have AWS Budgets
+      # A service linked role is not available for AWS Budgets
+      - name: Budgets-Role
+        assumedBy:
+          - type: service
+            principal: budgets.amazonaws.com
+        policies:
+          awsManaged:
+            - AWSBudgetsActionsWithAWSResourceControlAccess
+groupSets: []
+userSets: []
+identityCenter:
+ name: lzaIdentityCenter
+ delegatedAdminAccount: Audit 
+ identityCenterPermissionSets:
+   - name: LZA-ProductionSupport-Access
+     policies:
+       awsManaged:
+         - arn:aws:iam::aws:policy/PowerUserAccess
+       sessionDuration: 60
+   - name: LZA-Developer-Access
+     policies:
+       awsManaged:
+         - arn:aws:iam::aws:policy/ReadOnlyAccess
+         - arn:aws:iam::aws:policy/AmazonQDeveloperAccess
+         - arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess
+         - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+         - arn:aws:iam::aws:policy/AmazonS3FullAccess
+         - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+         - arn:aws:iam::aws:policy/AmazonRDSFullAccess
+         - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+         - arn:aws:iam::aws:policy/AmazonCloudWatchEvidentlyFullAccess
+       sessionDuration: 60
+   - name: LZA-Security-Access
+     policies:
+       awsManaged:
+         - arn:aws:iam::aws:policy/ReadOnlyAccess
+         - arn:aws:iam::aws:policy/AWSSecurityHubFullAccess
+         - arn:aws:iam::aws:policy/AmazonGuardDutyFullAccess
+         - arn:aws:iam::aws:policy/AmazonDetectiveFullAccess
+         - arn:aws:iam::aws:policy/AmazonInspector2FullAccess
+         - arn:aws:iam::aws:policy/AWSWAFConsoleFullAccess
+         - arn:aws:iam::aws:policy/AmazonAthenaFullAccess   
+ identityCenterAssignments:
+  - name: LZA-ProductionSupport-Assignment
+    permissionSetName: LZA-ProductionSupport-Access
+    principals:
+      - type: USER
+        name: naruto
+      - type: GROUP
+        name: lza-productionsupport
+    deploymentTargets:
+      accounts:
+        - LogArchive
+        - Audit
+        - Management
+        - Network

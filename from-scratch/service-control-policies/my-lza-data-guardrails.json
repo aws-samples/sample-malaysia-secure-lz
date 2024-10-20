@@ -1,0 +1,152 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyCreateRDSwithoutEncryption",
+            "Effect": "Deny",
+            "Action": [
+              "rds:CreateDBInstance",
+              "rds:CreateDBCluster"
+            ],
+            "Resource": [
+              "*"
+            ],
+            "Condition": {
+              "ForAnyValue:BoolIfExists": {
+                "rds:StorageEncrypted": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyCreateEFSwithoutEncryption",
+            "Effect": "Deny",
+            "Action": [
+              "elasticfilesystem:CreateFileSystem"
+            ],
+            "Resource": [
+              "*"
+            ],
+            "Condition": {
+              "ForAnyValue:BoolIfExists": {
+                "elasticfilesystem:Encrypted": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyCreatePubliclyAccessibleEFS",
+            "Effect": "Deny",
+            "Action": [
+              "elasticfilesystem:CreateFileSystem",
+              "elasticfilesystem:UpdateFileSystem",
+              "elasticfilesystem:ClientWrite",
+              "elasticfilesystem:ClientRootAccess"
+            ],
+            "Resource": [
+              "*"
+            ],
+            "Condition": {
+              "ForAnyValue:BoolIfExists": {
+                "elasticfilesystem:AccessedViaMountTarget": "false"
+              }
+            }
+          },
+        {
+          "Effect": "Deny",
+          "Action": [
+            "ec2:DisableEbsEncryptionByDefault"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Effect": "Deny",
+          "Action": "ec2:CreateVolume",
+          "Resource": "*",
+          "Condition": {
+            "Bool": {
+              "ec2:Encrypted": "false"
+            }
+          }
+        },
+        {
+          "Sid": "PreventEc2MountUnencryptedVolume",
+          "Effect": "Deny",
+          "Action": "ec2:RunInstances",
+          "Resource": "arn:aws:ec2:*:*:volume/*",
+          "Condition": {
+            "Bool": {
+              "ec2:Encrypted": "false"
+             }
+           }
+        },
+        {
+          "Sid": "PreventPublicBucketACL",
+          "Effect": "Deny",
+          "Action": [
+             "s3:PutBucketAcl",
+             "s3:CreateBucket"
+          ],
+          "Resource": "*",
+          "Condition": {
+             "StringEquals": {
+                "s3:x-amz-acl": [
+                   "public-read",
+                   "public-read-write"
+                ]
+             },
+             "StringNotEqualsIfExists": {
+                "aws:PrincipalTag/identity-perimeter-exception": "true"
+             }
+          }
+       },
+       {
+          "Sid": "PreventS3PublicAccessBlockConfigurations",
+          "Effect": "Deny",
+          "Action": "s3:PutAccountPublicAccessBlock",
+          "Resource": "*",
+          "Condition": {
+             "StringNotEqualsIfExists": {
+                "aws:PrincipalTag/identity-perimeter-exception": "true"
+             }
+          }
+       },
+      {
+        "Sid": "PreventDisableAMISnapshotPublicAccess",
+        "Action": [
+          "ec2:DisableImageBlockPublicAccess",
+          "ec2:DisableSnapshotBlockPublicAccess"
+        ],
+        "Resource": "*",
+        "Effect": "Deny"
+      },
+      {
+        "Sid": "DenyCreatingDataResourcesUSEast1",
+        "Action": [
+          "ec2:*",
+          "ebs:*",
+          "rds:*",
+          "elasticfilesystem:*",
+          "es:*"
+        ],
+        "Resource": "*",
+        "Effect": "Deny",
+        "Condition": {
+          "StringEquals": {
+            "aws:RequestedRegion": "us-east-1"
+          }
+        }
+      },
+      {
+        "Sid": "DenyMultiRegionKMSKey",
+        "Effect": "Deny",
+        "Resource": "*",
+        "Action": [
+          "kms:CreateKey"
+        ],
+        "Condition": {
+          "ForAnyValue:BoolIfExists": {
+            "kms:MultiRegion": "true"
+          }
+        }
+      }
+    ]
+}

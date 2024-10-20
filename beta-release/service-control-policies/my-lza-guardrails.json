@@ -1,0 +1,40 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+          "Sid": "DenyMemberAccountsLeavingOrganization",
+          "Effect": "Deny",
+          "Action": [
+              "organizations:LeaveOrganization"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Sid": "DenyIAMCreateUserAndKeys",
+          "Effect": "Deny",
+          "Action": [
+              "iam:AddUserToGroup",
+              "iam:CreateGroup",
+              "iam:CreateLoginProfile",
+              "iam:CreateUser",
+              "iam:DeleteGroup",
+              "iam:DeleteUser",
+              "iam:RemoveUserFromGroup",
+              "iam:UpdateGroup",
+              "iam:UpdateUser",
+              "iam:CreateAccessKey",
+              "iam:UpdateAccessKey",
+              "iam:DeleteAccessKey"
+          ],
+          "Resource": "*",
+          "Condition": {
+              "StringNotLike": {
+                  "aws:PrincipalArn": [
+                      "arn:aws:iam::*:role/AWSControlTowerExecution",
+                      "arn:${PARTITION}:iam::*:role/${ACCELERATOR_PREFIX}-*"
+                  ]
+              }
+          }
+        }
+    ]
+}
