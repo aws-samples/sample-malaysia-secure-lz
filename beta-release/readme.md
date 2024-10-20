@@ -115,8 +115,8 @@ Key Policy
     ```
     python3 security-config.py delegated_admin_account=123456789012
     ``` 
-7. Enable Control Tower in management account. Follow these instructions from (AWS Control Tower quick start guide)[https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html]
-    - Enable IAM identity Center
+7. Enable Control Tower in management account. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
+    - Enable IAM Identity Center
     - Specify Region Deny, to only govern these regions (us-east-1, ap-southeast-1 and ap-southeast-2)
 8. Login to new network account to run CloudFormation script "central-network-account.json". Name the new CloudFormation Stack name it as "central-network"
 
