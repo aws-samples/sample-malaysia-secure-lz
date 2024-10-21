@@ -21,8 +21,9 @@ git push -uf origin main
 
 |Security Domain|Control Implementation|CGSO Control Reference|LZA Configuration|
 | --- | --- | --- | --- |
-| Identity Access Management | IAM Identity Center | table | iam-config.yaml |
-| Network Security | is 2nd | row | network-config.yaml |
-| Security Assurance | Security Hub | ??? | security-config.yaml | 
+| Identity Access Management | IAM Identity Center | ??? | iam-config.yaml |
+| Network Security | AWS Network Firewall with IPS (as Suricata rules) | ??? | network-config.yaml |
+| Security Assurance | Security Hub | ??? | security-config.yaml |
+ Logging and Monitoring | Organization CloudTrail (multi-region) | ??? | global-config.yaml | 
 | Threat Detection | GuardDuty | ? | security-config.yaml |
-| Backup | is 3rd | row | organization-config.yaml, global-config.yaml |
+| Backup | Backup Vault and backup policies | ??? | organization-config.yaml, global-config.yaml |
