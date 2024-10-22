@@ -21,15 +21,20 @@ git push -uf origin main
 
 |Security Domain|Control Implementation|CGSO Control Reference|LZA Configuration|
 | --- | --- | --- | --- |
-| Identity Access Management | IAM Identity Center | ??? | iam-config.yaml |
-| Data Sovereignty | IAM Service Control Policy | 7.1.1, 7.2.1 | iam-config.yaml |
+| Identity Access Management | IAM Identity Center (Administrator, Developer, Security, Infrastructure OPerations, DevOps Permission Sets) | 7.8.1 | iam-config.yaml |
+| Identity Access Management | IAM Password Policy | 7.5.7 | iam-config.yaml |
+| Data Sovereignty | IAM Service Control Policy | 7.1.1, 7.2.1, 12.7.1 | iam-config.yaml |
 | Data Protection | IAM Service Control Policy | 7.1.3 | iam-config.yaml |
-| Network Security | AWS Network Firewall with IPS (as Suricata rules) | ??? | network-config.yaml |
-| Network Security | AWS Route53 DNS Resolver Firewall | ??? | network-config.yaml |
-| Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | 7.1.3 | network-config.yaml |
-| Security Assurance | Security Hub | ??? | security-config.yaml |
-| Logging and Monitoring | Organization CloudTrail (multi-region, management events) | 7.3.1 | global-config.yaml | 
-| Logging and Monitoring | SSM Session Manager | ??? | global-config.yaml |
-| Logging and Monitoring | S3 Access Logs | ??? | global-config.yaml |  
-| Threat Detection | GuardDuty | ? | security-config.yaml |
-| Backup | Backup Vault and backup policies | ??? | organization-config.yaml, global-config.yaml |
+| Data Protection | EC2 EBS Default Encryption | 12.1.1 | security-config.yaml |
+| Data Protection | S3 Block Public Access | 12.1.1 | security-config.yaml |
+| Network Security | VPC, Transit Gateway | 12.2.2 | network-config.yaml |
+| Network Security | AWS Network Firewall with IPS (as Suricata rules) | 12.4.2 | network-config.yaml |
+| Network Security | AWS Route53 DNS Resolver Firewall | 12.4.2 | network-config.yaml |
+| Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | 7.1.3, 7.5.1 | network-config.yaml |
+| Security Assurance | Security Hub | 7.5.7, 12.1.2, 12.1.3, 12.1.5 | security-config.yaml |
+| Logging and Monitoring | Organization CloudTrail (multi-region, management events) | 7.3.1, 7.5.4, 12.3.3 | global-config.yaml | 
+| Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | global-config.yaml |
+| Logging and Monitoring | S3 Access Logs | 7.3.1 | global-config.yaml |  
+| Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | security-config.yaml |
+| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | security-config.yaml |
+| Backup | Backup Vault and backup policies | 7.5.5 | organization-config.yaml, global-config.yaml |
