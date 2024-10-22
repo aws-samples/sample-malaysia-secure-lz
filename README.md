@@ -23,7 +23,11 @@ git push -uf origin main
 | --- | --- | --- | --- |
 | Identity Access Management | IAM Identity Center | ??? | iam-config.yaml |
 | Network Security | AWS Network Firewall with IPS (as Suricata rules) | ??? | network-config.yaml |
+| Network Security | AWS Route53 DNS Resolver Firewall | ??? | network-config.yaml |
+| Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | ??? | network-config.yaml |
 | Security Assurance | Security Hub | ??? | security-config.yaml |
- Logging and Monitoring | Organization CloudTrail (multi-region) | ??? | global-config.yaml | 
+| Logging and Monitoring | Organization CloudTrail (multi-region, management events) | ??? | global-config.yaml | 
+| Logging and Monitoring | SSM Session Manager | ??? | global-config.yaml |
+| Logging and Monitoring | S3 Access Logs | ??? | global-config.yaml |  
 | Threat Detection | GuardDuty | ? | security-config.yaml |
 | Backup | Backup Vault and backup policies | ??? | organization-config.yaml, global-config.yaml |
