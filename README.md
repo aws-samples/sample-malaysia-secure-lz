@@ -22,11 +22,13 @@ git push -uf origin main
 |Security Domain|Control Implementation|CGSO Control Reference|LZA Configuration|
 | --- | --- | --- | --- |
 | Identity Access Management | IAM Identity Center | ??? | iam-config.yaml |
+| Data Sovereignty | IAM Service Control Policy | 7.1.1, 7.2.1 | iam-config.yaml |
+| Data Protection | IAM Service Control Policy | 7.1.3 | iam-config.yaml |
 | Network Security | AWS Network Firewall with IPS (as Suricata rules) | ??? | network-config.yaml |
 | Network Security | AWS Route53 DNS Resolver Firewall | ??? | network-config.yaml |
-| Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | ??? | network-config.yaml |
+| Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | 7.1.3 | network-config.yaml |
 | Security Assurance | Security Hub | ??? | security-config.yaml |
-| Logging and Monitoring | Organization CloudTrail (multi-region, management events) | ??? | global-config.yaml | 
+| Logging and Monitoring | Organization CloudTrail (multi-region, management events) | 7.3.1 | global-config.yaml | 
 | Logging and Monitoring | SSM Session Manager | ??? | global-config.yaml |
 | Logging and Monitoring | S3 Access Logs | ??? | global-config.yaml |  
 | Threat Detection | GuardDuty | ? | security-config.yaml |
