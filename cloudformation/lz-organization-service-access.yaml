@@ -1,0 +1,287 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Set AWS Organization Trusted Access for AWS native security services Security Hub, GuardDuty, Inspector, Firewall Manager, and IAM Access Analyzer at AWS Organization level."
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Lambda Function Configuration"
+        Parameters:
+          - LoggingLevel
+      - Label:
+          default: "AWS Organization Trusted Access Configuration"
+        Parameters:
+          - GuardDutyEnable
+          - InspectorEnable
+          - SecurityHubEnable
+          - DetectiveEnable
+          - FirewallManagerEnable
+          - IAMAccessAnalyzerEnable
+          - IAMEnable
+          - CloudFormationEnable
+          - BackupEnable
+      - Label:
+          default: "Security Services Configuration"
+    ParameterLabels:
+      GuardDutyEnable:
+        default: "GuardDuty"
+      SecurityHubEnable:
+        default: "Security Hub"
+      DetectiveEnable:
+        default: "Detective"
+      InspectorEnable:
+        default: "Inspector"
+      FirewallManagerEnable:
+        default: "Firewall Manager"
+      IAMAccessAnalyzerEnable:
+        default: "IAM Access Analyzer"
+      IAMEnable:
+        default: "Identity Access Management"
+      CloudFormationEnable:
+        default: "CloudFormation"
+      BackupEnable:
+        default: "Backup"
+      LoggingLevel:
+        default: "Logging Level"
+
+Parameters:
+  GuardDuty:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable GuardDuty to identify threats in the AWS environment."
+    Type: String 
+  SecurityHub:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable Security Hub for continuous compliance monitoring."
+    Type: String
+  Detective:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable Detective for investigation of GuardDuty alerts."
+    Type: String
+  Inspector:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable Inspector to scan for known vulnerabilities in EC2, Containers, and Lambda functions."
+    Type: String
+  FirewallManager:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable Firewall Manager for centralized network management."
+    Type: String
+  IAMAccessAnalyzer:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable IAM Access Analyzer to identify unauthorized external sharing of resources."
+    Type: String
+  IAM:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable IAM for centralized root management for organization."
+    Type: String
+  CloudFormation:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable CloudFormation Stacks for across multiple accounts and regions."
+    Type: String
+  Backup:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable automated Backup plans across multiple accounts and regions."
+    Type: String
+  LoggingLevel:
+    AllowedValues: ["CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING"]
+    Default: "INFO"
+    Description: "The logging level for the Lambda function."
+    Type: String
+
+Resources:
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Description: "Used by the Lambda to update the AWS native Security Services configuration."
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: Allow
+                Action:
+                  - "organizations:EnableAwsServiceAccess"
+                  - "organizations:DisableAwsServiceAccess"
+                  - "cloudformation:ActivateOrganizationsAccess"
+                  - "cloudformation:DeactivateOrganizationsAccess"
+                  - "cloudformation:DescribeOrganizationsAccess"
+                  - "iam:GetRole"
+                  - "sts:GetCallerIdentity"
+                Resource: "*"
+      RoleName: "organization-service-trusted-access-lambda"
+
+  OrganizationServiceTrustedAccessLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Architectures:
+        - x86_64
+      Code:
+        ZipFile: |
+          import os
+          import logging
+          import boto3
+          from botocore.exceptions import ClientError
+          import cfnresponse
+          logger = logging.getLogger()
+          logger.setLevel(os.environ['LOGGING_LEVEL'])
+          organizations_client = boto3.client("organizations")
+          cloudformation_client = boto3.client("cloudformation")
+          sts_client = boto3.client('sts')
+          account_id = sts_client.get_caller_identity()["Account"]
+          def lambda_handler(event, context):
+              logger.info(f"Received event: {event}")
+              physical_id = event['LogicalResourceId']
+              try:
+                  if event['RequestType'] in ['Create', 'Update']:
+                      if event['ResourceProperties']['GuardDuty'] == 'true':
+                          set_trusted_access('guardduty.amazonaws.com')
+                          set_trusted_access('malware-protection.guardduty.amazonaws.com')
+                      elif event['ResourceProperties']['GuardDuty'] == 'false':
+                          disable_trusted_access('guardduty.amazonaws.com')
+                          disable_trusted_access('malware-protection.guardduty.amazonaws.com')
+                      
+                      if event['ResourceProperties']['SecurityHub'] == 'true':
+                          set_trusted_access('securityhub.amazonaws.com')
+                      elif event['ResourceProperties']['SecurityHub'] == 'false':
+                          disable_trusted_access('securityhub.amazonaws.com')
+
+                      if event['ResourceProperties']['Detective'] == 'true':
+                          set_trusted_access('detective.amazonaws.com')
+                      elif event['ResourceProperties']['Detective'] == 'false':
+                          disable_trusted_access('detective.amazonaws.com')
+
+                      if event['ResourceProperties']['Inspector'] == 'true':
+                          set_trusted_access('inspector2.amazonaws.com')
+                      elif event['ResourceProperties']['Inspector'] == 'false':
+                          disable_trusted_access('inspector2.amazonaws.com')
+
+                      if event['ResourceProperties']['FirewallManager'] == 'true':
+                          set_trusted_access('fms.amazonaws.com')                          
+                      elif event['ResourceProperties']['FirewallManager'] == 'false':
+                          disable_trusted_access('fms.amazonaws.com')
+                      
+                      if event['ResourceProperties']['IAMAccessAnalyzer'] == 'true':
+                          set_trusted_access('access-analyzer.amazonaws.com')
+                      elif event['ResourceProperties']['IAMAccessAnalyzer'] == 'false':
+                          disable_trusted_access('access-analyzer.amazonaws.com')
+
+                      if event['ResourceProperties']['IAM'] == 'true':
+                          set_trusted_access('iam.amazonaws.com')
+                      elif event['ResourceProperties']['IAM'] == 'false':
+                          disable_trusted_access('iam.amazonaws.com')
+
+                      if event['ResourceProperties']['Backup'] == 'true':
+                          set_trusted_access('backup.amazonaws.com')                          
+                      elif event['ResourceProperties']['Backup'] == 'false':
+                          disable_trusted_access('backup.amazonaws.com')
+
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
+                  elif event['RequestType'] == 'Delete':
+                      disable_trusted_access('guardduty.amazonaws.com')
+                      disable_trusted_access('malware-protection.guardduty.amazonaws.com')
+                      disable_trusted_access('securityhub.amazonaws.com')
+                      disable_trusted_access('detective.amazonaws.com')
+                      disable_trusted_access('inspector2.amazonaws.com')
+                      disable_trusted_access('fms.amazonaws.com')
+                      disable_trusted_access('access-analyzer.amazonaws.com')
+                      disable_trusted_access('iam.amazonaws.com')
+                      disable_trusted_access('backup.amazonaws.com')
+
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
+                  else:
+                      logger.error(f"Invalid request type: {event['RequestType']}")
+                      cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
+              except Exception as e:
+                  logger.error(f"Error: {str(e)}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
+          def set_trusted_access(service_principal):
+              try:
+                  organizations_client.enable_aws_service_access(ServicePrincipal = service_principal)
+                  logger.info(f"AWS Organization Service {service_principal} Trusted Access configuration updated successfully")
+              except ClientError as e:
+                  logger.error(f"Error updating AWS Organization Service {service_principal} Trusted Access configuration: {str(e)}")
+                  raise
+          def disable_trusted_access(service_principal):
+              try:
+                  organizations_client.disable_aws_service_access(ServicePrincipal = service_principal)
+                  logger.info(f"AWS Organization Service {service_principal} configuration reset successfully")
+              except ClientError as e:
+                  if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
+                      logger.info("GuardDuty delegated security admin account was already deleted or did not exist")
+                  else:
+                      logger.error(f"Error resetting AWS Organization Service {service_principal}Trusted Access configuration: {str(e)}")
+                      raise
+          def activate_organizations_access_cloudformation():
+              try:
+                  cloudformation_client.activate_organizations_access()
+                  logger.info("CloudFormation Activate Organization Access configuration updated successfully")
+              except ClientError as e:
+                  logger.error(f"Error updating CloudFormation Activate Organization Access configuration: {str(e)}")
+                  raise
+          def deactivate_organizations_access_cloudformation():
+              try:
+                  cloudformation_client.deactivate_organizations_access()
+                  logger.info("CloudFormation Deactivate Organization Access configuration updated successfully")
+              except ClientError as e:
+                  logger.error(f"Error CloudFormation Deactivate Organization Access configuration: {str(e)}")
+                  raise
+      Description: "Enable or disable AWS Organization Service Trusted Access configuration at organization level."
+      Environment:
+        Variables:
+          LOGGING_LEVEL: !Ref LoggingLevel
+      FunctionName: "organization-service-trusted-access-update"
+      Handler: index.lambda_handler
+      LoggingConfig:
+        LogGroup: !Ref OrganizationServiceTrustedAccessLambdaLogGroup
+      MemorySize: 128
+      PackageType: Zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.12
+      Timeout: 10
+
+  OrganizationServiceTrustedAccessLambdaLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      RetentionInDays: 7
+
+  OrganizationServiceTrustedAccess:
+    Type: "Custom::OrganizationServiceTrustedAccess"
+    Properties:
+      GuardDuty: !Ref GuardDuty
+      SecurityHub: !Ref SecurityHub
+      Inspector: !Ref Inspector
+      Detective: !Ref Detective
+      FirewallManager: !Ref FirewallManager
+      IAMAccessAnalyzer: !Ref IAMAccessAnalyzer
+      IAM: !Ref IAM
+      CloudFormation: !Ref CloudFormation
+      Backup: !Ref Backup
+      ServiceToken: !GetAtt OrganizationServiceTrustedAccessLambda.Arn
+
+Outputs:
+  OrganizationServiceTrustedAccessLambda:
+    Description: Lambda function for setting AWS Organization Services Trusted Access configuration.
+    Value: !Ref OrganizationServiceTrustedAccessLambda
