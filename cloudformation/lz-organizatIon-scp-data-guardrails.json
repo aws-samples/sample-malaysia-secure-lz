@@ -1,0 +1,210 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creates data protection guardrail Service Control Policy to ensure encryption by default and local data residency in home region",
+    "Parameters": {
+        "DataProtectionGuardrailPolicyName": {
+            "Type": "String",
+            "Default": "my-lza-data-guardrail",
+            "Description": "Name of the data protection guardrail Service Control Policy"
+        },
+        "PolicyDescription": {
+            "Type": "String",
+            "Default": "SCP to ensure encryption by default and local data residency in home region",
+            "Description": "Description for the Service Control Policy"
+        },
+        "TargetOrganizationalUnitIds": {
+            "Type": "CommaDelimitedList",
+            "Description": "ID of the Organizational Unit to attach the policy (starts with 'ou-')"
+        }
+    },
+    "Resources": {
+        "DataProtectionGuardrailPolicy": {
+            "Type": "AWS::Organizations::Policy",
+            "Properties": {
+                "Content": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "DenyCreateRDSwithoutEncryption",
+                            "Effect": "Deny",
+                            "Action": [
+                            "rds:CreateDBInstance",
+                            "rds:CreateDBCluster"
+                            ],
+                            "Resource": ["*"],
+                            "Condition": {
+                            "ForAnyValue:BoolIfExists": {
+                                "rds:StorageEncrypted": "false"
+                            }
+                            }
+                        },
+                        {
+                            "Sid": "DenyCreateEFSwithoutEncryption",
+                            "Effect": "Deny",
+                            "Action": [
+                            "elasticfilesystem:CreateFileSystem"
+                            ],
+                            "Resource": ["*"],
+                            "Condition": {
+                            "ForAnyValue:BoolIfExists": {
+                                "elasticfilesystem:Encrypted": "false"
+                            }
+                            }
+                        },
+                        {
+                            "Sid": "DenyCreatePubliclyAccessibleEFS",
+                            "Effect": "Deny",
+                            "Action": [
+                            "elasticfilesystem:CreateFileSystem",
+                            "elasticfilesystem:UpdateFileSystem",
+                            "elasticfilesystem:ClientWrite",
+                            "elasticfilesystem:ClientRootAccess"
+                            ],
+                            "Resource": ["*"],
+                            "Condition": {
+                            "ForAnyValue:BoolIfExists": {
+                                "elasticfilesystem:AccessedViaMountTarget": "false"
+                            }
+                            }
+                        },
+                        {
+                        "Effect": "Deny",
+                        "Action": [
+                            "ec2:DisableEbsEncryptionByDefault"
+                        ],
+                        "Resource": "*"
+                        },
+                        {
+                        "Effect": "Deny",
+                        "Action": "ec2:CreateVolume",
+                        "Resource": "*",
+                        "Condition": {
+                            "Bool": {
+                            "ec2:Encrypted": "false"
+                            }
+                        }
+                        },
+                        {
+                        "Sid": "PreventEc2MountUnencryptedVolume",
+                        "Effect": "Deny",
+                        "Action": "ec2:RunInstances",
+                        "Resource": "arn:aws:ec2:*:*:volume/*",
+                        "Condition": {
+                            "Bool": {
+                            "ec2:Encrypted": "false"
+                            }
+                        }
+                        },
+                        {
+                        "Sid": "PreventPublicBucketACL",
+                        "Effect": "Deny",
+                        "Action": [
+                            "s3:PutBucketAcl",
+                            "s3:CreateBucket"
+                        ],
+                        "Resource": "*",
+                        "Condition": {
+                            "StringEquals": {
+                                "s3:x-amz-acl": [
+                                "public-read",
+                                "public-read-write"
+                                ]
+                            },
+                            "StringNotEqualsIfExists": {
+                                "aws:PrincipalTag/identity-perimeter-exception": "true"
+                            }
+                        }
+                    },
+                    {
+                        "Sid": "PreventS3PublicAccessBlockConfigurations",
+                        "Effect": "Deny",
+                        "Action": "s3:PutAccountPublicAccessBlock",
+                        "Resource": "*",
+                        "Condition": {
+                            "StringNotEqualsIfExists": {
+                                "aws:PrincipalTag/identity-perimeter-exception": "true"
+                            }
+                        }
+                    },
+                    {
+                        "Sid": "PreventDisableAMISnapshotPublicAccess",
+                        "Action": [
+                        "ec2:DisableImageBlockPublicAccess",
+                        "ec2:DisableSnapshotBlockPublicAccess"
+                        ],
+                        "Resource": "*",
+                        "Effect": "Deny"
+                    },
+                    {
+                        "Sid": "DenyCreatingDataResourcesUSEast1",
+                        "Action": [
+                        "ec2:*",
+                        "ebs:*",
+                        "rds:*",
+                        "elasticfilesystem:*",
+                        "es:*"
+                        ],
+                        "Resource": "*",
+                        "Effect": "Deny",
+                        "Condition": {
+                        "StringEquals": {
+                            "aws:RequestedRegion": "us-east-1"
+                        }
+                        }
+                    },
+                    {
+                        "Sid": "DenyMultiRegionKMSKey",
+                        "Effect": "Deny",
+                        "Resource": "*",
+                        "Action": [
+                        "kms:CreateKey"
+                        ],
+                        "Condition": {
+                        "ForAnyValue:BoolIfExists": {
+                            "kms:MultiRegion": "true"
+                        }
+                        }
+                    }
+                    ]
+                },
+                "Description": {
+                    "Ref": "PolicyDescription"
+                },
+                "Name": {
+                    "Ref": "DataProtectionGuardrailPolicyName"
+                },
+                "Type": "SERVICE_CONTROL_POLICY",
+                "TargetIds": {
+                    "Ref": "TargetOrganizationalUnitIds"
+                },
+                "Tags": [
+                    {
+                        "Key": "Purpose",
+                        "Value": "Security Control"
+                    },
+                    {
+                        "Key": "Service",
+                        "Value": "IAM"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "DataProtectionGuardrailPolicyId": {
+            "Description": "ID of the created data protection guardrail Service Control Policy",
+            "Value": {
+                "Ref": "DataProtectionGuardrailPolicy"
+            }
+        },
+        "DataProtectionGuardrailPolicyArn": {
+            "Description": "ARN of the created data protection guardrail Service Control Policy",
+            "Value": {
+                "Fn::GetAtt": [
+                    "DataProtectionGuardrailPolicy",
+                    "Arn"
+                ]
+            }
+        }
+    }
+}
