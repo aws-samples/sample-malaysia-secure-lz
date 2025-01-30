@@ -102,11 +102,6 @@ Key Policy
 3. Create required KMS-CMK key for AWS Control Tower (manual creation). Refer above for sample KMS-CMK key for AWS Control Tower. 
 4. Create required KMS-CMK keys for CloudWatch Log Groups and required IAM roles for Backup and SSM. Use the CloudFormation script "lz-organization-kms-iam.json"
 5. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). Use the CloudFormation script "lz-organization-service-access.yaml", use StackName "lz-organization-service-access".
-6. Enforce new AWS account security baseline for each member account in each home region. Use the CloudFormation script "lz-new-account-ec2-baseline.yaml", use StackName "lz-account-baseline"
-    - Enforce EBS Default Encryption with KMS-Customer Managed Key
-    - Enforce Block Public Access for EBS snapshots
-    - Enforce IMDS defaults as mandatory
-    - TODO: Set alternate security contact information
 6. Identify the OU identifer (format ou-XXXXXX) of the Infrastructure OU. Capture the OU to share the new Transit-Gateway resource. 
 aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> --query 'OrganizationalUnit.Arn'
 7. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
@@ -119,7 +114,13 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
 8. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, Firewall Manager, IAM Access Analyzer and Detective. Use the CloudFormation script "lz-delegate-native-security-services.yaml", use StackName "lz-delegate-security-services". Set the AdminAccountId parameter to the AWS Control Tower audit account.
 9. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. Use the CloudFormation scripts "lz-scp-baseline-guardrail.json", "lz-scp-data-guardrail.json", and "lz-scp-approved-services.json". use StackName "lz-scp-baseline-guardrails", "lz-scp-data-protection-guardrails", "lz-scp-approved-services" respectively.
 10. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. Use the CloudFormation script "lz-organization-rcp-guardrails.json", use StackName "lz-rcp-baseline-guardrails".
-11. Login to new network account to run CloudFormation script "central-network-account.json". Name the new CloudFormation Stack name it as "central-network"
+11. Enforce new AWS account security baseline for each member account in each home region. Use the CloudFormation script "lz-new-account-ec2-baseline.yaml", use StackName "lz-account-baseline"
+    - Enforce EBS Default Encryption with KMS-Customer Managed Key
+    - Enforce Block Public Access for EBS snapshots
+    - Enforce IMDS defaults as mandatory
+    - TODO: Set alternate security contact information
+12. Enforce S3 Block Public Access at account level. Use the CloudFormation script "lz-s3-bpa.yaml", use StackName "lz-s3-bpa".
+13. Login to new network account to run CloudFormation script "central-network-account.json". Name the new CloudFormation Stack name it as "central-network"
 
 
 ## Post CloudFormation deployment configuration
