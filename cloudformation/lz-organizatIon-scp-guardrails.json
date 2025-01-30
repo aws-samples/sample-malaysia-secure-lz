@@ -1,0 +1,104 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creates baseline guardrail Service Control Policy to deny leaving organization and deny unauthorized IAM user creation",
+    "Parameters": {
+        "BaselineGuardrailPolicyName": {
+            "Type": "String",
+            "Default": "my-lza-guardrail",
+            "Description": "Name of the baseline guardrail Service Control Policy"
+        },
+        "PolicyDescription": {
+            "Type": "String",
+            "Default": "SCP to prevent account leaving organization and deny unauthorized IAM user creation across the organization",
+            "Description": "Description for the Service Control Policy"
+        },
+        "TargetOrganizationalUnitIds": {
+            "Type": "CommaDelimitedList",
+            "Description": "ID of the Organizational Unit to attach the policy (starts with 'ou-')"
+        }
+    },
+    "Resources": {
+        "BaselineGuardrailPolicy": {
+            "Type": "AWS::Organizations::Policy",
+            "Properties": {
+                "Content": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                        "Sid": "DenyMemberAccountsLeavingOrganization",
+                        "Effect": "Deny",
+                        "Action": [
+                            "organizations:LeaveOrganization"
+                        ],
+                        "Resource": "*"
+                        },
+                        {
+                        "Sid": "DenyIAMCreateUserAndKeys",
+                        "Effect": "Deny",
+                        "Action": [
+                            "iam:AddUserToGroup",
+                            "iam:CreateGroup",
+                            "iam:CreateLoginProfile",
+                            "iam:CreateUser",
+                            "iam:DeleteGroup",
+                            "iam:DeleteUser",
+                            "iam:RemoveUserFromGroup",
+                            "iam:UpdateGroup",
+                            "iam:UpdateUser",
+                            "iam:CreateAccessKey",
+                            "iam:UpdateAccessKey",
+                            "iam:DeleteAccessKey"
+                        ],
+                        "Resource": "*",
+                        "Condition": {
+                            "StringNotLike": {
+                                "aws:PrincipalArn": [
+                                    "arn:aws:iam::*:role/AWSControlTowerExecution",
+                                    "arn:${PARTITION}:iam::*:role/${ACCELERATOR_PREFIX}-*"
+                                ]
+                            }
+                        }
+                        }
+                    ]
+                },
+                "Description": {
+                    "Ref": "PolicyDescription"
+                },
+                "Name": {
+                    "Ref": "BaselineGuardrailPolicyName"
+                },
+                "Type": "SERVICE_CONTROL_POLICY",
+                "TargetIds": {
+                    "Ref": "TargetOrganizationalUnitIds"
+                },
+                "Tags": [
+                    {
+                        "Key": "Purpose",
+                        "Value": "Security Control"
+                    },
+                    {
+                        "Key": "Service",
+                        "Value": "IAM"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "BaselineGuardrailPolicyId": {
+            "Description": "ID of the created baseline Service Control Policy",
+            "Value": {
+                "Ref": "BaselineGuardrailPolicy"
+            }
+        },
+        "BaselineGuardrailPolicyArn": {
+            "Description": "ARN of the created baseline Service Control Policy",
+            "Value": {
+                "Fn::GetAtt": [
+                    "BaselineGuardrailPolicy",
+                    "Arn"
+                ]
+            }
+        }
+    }
+}
