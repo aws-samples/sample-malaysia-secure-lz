@@ -1,0 +1,245 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Creates KMS keys for Control Tower and CloudWatch Log Groups",
+    "Parameters": {
+        "KeyAdministratorArn": {
+            "Type": "String",
+            "Description": "ARN of IAM user/role that will administer the KMS keys"
+        },
+        "CloudWatchKeyAlias": {
+            "Type": "String",
+            "Default": "alias/cloudwatch-logs-key",
+            "Description": "Alias name for the CloudWatch Logs KMS key"
+        },
+        "EnableKeyRotation": {
+            "Type": "String",
+            "Default": "true",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Description": "Enable automatic key rotation (recommended)"
+        },
+        "BackupRoleName": {
+            "Type": "String",
+            "Default": "AWSBackupServiceRole",
+            "Description": "Name of the IAM role for AWS Backup"
+        },
+        "EC2SSMRoleName": {
+            "Type": "String",
+            "Default": "EC2SSMCloudWatchRole",
+            "Description": "Name of the IAM role for EC2 instances"
+        }
+    },
+    "Resources": {
+        "BackupServiceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": {
+                    "Ref": "BackupRoleName"
+                },
+                "Description": "IAM role for AWS Backup service with backup and restore permissions",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "backup.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup",
+                    "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Purpose",
+                        "Value": "AWS Backup Service Role"
+                    },
+                    {
+                        "Key": "Service",
+                        "Value": "AWS Backup"
+                    }
+                ]
+            }
+        },
+        "EC2SSMServiceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": {
+                    "Ref": "EC2SSMRoleName"
+                },
+                "Description": "IAM role for EC2 instances with SSM and CloudWatch Agent permissions",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+                    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+                ],
+                "Tags": [
+                    {
+                        "Key": "Purpose",
+                        "Value": "SSM and CloudWatch Agent Access"
+                    },
+                    {
+                        "Key": "Service",
+                        "Value": "EC2"
+                    }
+                ]
+            }
+        },
+        "CloudWatchLogsKey": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Description": "KMS key for CloudWatch Logs encryption",
+                "EnableKeyRotation": {
+                    "Ref": "EnableKeyRotation"
+                },
+                "KeyPolicy": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "Enable IAM User Permissions",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:root"
+                                }
+                            },
+                            "Action": "kms:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow Key Administrator",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Ref": "KeyAdministratorArn"
+                                }
+                            },
+                            "Action": [
+                                "kms:Create*",
+                                "kms:Describe*",
+                                "kms:Enable*",
+                                "kms:List*",
+                                "kms:Put*",
+                                "kms:Update*",
+                                "kms:Revoke*",
+                                "kms:Disable*",
+                                "kms:Get*",
+                                "kms:Delete*",
+                                "kms:TagResource",
+                                "kms:UntagResource",
+                                "kms:ScheduleKeyDeletion",
+                                "kms:CancelKeyDeletion"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow CloudWatch Logs Service",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": {
+                                    "Fn::Sub": "logs.${AWS::Region}.amazonaws.com"
+                                }
+                            },
+                            "Action": [
+                                "kms:Encrypt*",
+                                "kms:Decrypt*",
+                                "kms:ReEncrypt*",
+                                "kms:GenerateDataKey*",
+                                "kms:Describe*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "ArnLike": {
+                                    "kms:EncryptionContext:aws:logs:arn": {
+                                        "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Purpose",
+                        "Value": "CloudWatch Logs Encryption"
+                    }
+                ]
+            }
+        },
+        "CloudWatchLogsKeyAlias": {
+            "Type": "AWS::KMS::Alias",
+            "Properties": {
+                "AliasName": {
+                    "Ref": "CloudWatchKeyAlias"
+                },
+                "TargetKeyId": {
+                    "Ref": "CloudWatchLogsKey"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "CloudWatchLogsKeyId": {
+            "Description": "ID of the CloudWatch Logs KMS key",
+            "Value": {
+                "Ref": "CloudWatchLogsKey"
+            }
+        },
+        "CloudWatchLogsKeyArn": {
+            "Description": "ARN of the CloudWatch Logs KMS key",
+            "Value": {
+                "Fn::GetAtt": [
+                    "CloudWatchLogsKey",
+                    "Arn"
+                ]
+            }
+        },
+        "BackupRoleArn": {
+            "Description": "ARN of the AWS Backup service role",
+            "Value": {
+                "Fn::GetAtt": [
+                    "BackupServiceRole",
+                    "Arn"
+                ]
+            }
+        },
+        "BackupRoleName": {
+            "Description": "Name of the AWS Backup service role",
+            "Value": {
+                "Ref": "BackupRoleName"
+            }
+        },
+        "EC2SSMRoleArn": {
+            "Description": "ARN of the created IAM role",
+            "Value": {
+                "Fn::GetAtt": [
+                    "EC2SSMServiceRole",
+                    "Arn"
+                ]
+            }
+        },
+        "EC2SSMRoleName": {
+            "Description": "Name of the created IAM role",
+            "Value": {
+                "Ref": "EC2SSMRoleName"
+            }
+        }
+    }
+}
