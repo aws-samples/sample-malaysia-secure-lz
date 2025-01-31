@@ -247,7 +247,7 @@ Resources:
       MemorySize: 128
       PackageType: Zip
       Role: !GetAtt LambdaExecutionRole.Arn
-      Runtime: python3.12
+      Runtime: python3.13
       Timeout: 10
 
   EC2DataProtectionSecurityUpdateLambdaLogGroup:
