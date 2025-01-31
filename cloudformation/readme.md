@@ -7,7 +7,7 @@ This beta release of the landing zone accelerator (LZA) is for Malaysia public s
 
 Feature Components
 1. Management: AWS Organization and Control Tower
-    - Service Control Policy: region deny, enforce data encryption
+    - Service Control Policy: region deny, enforce data encryption for data resources, and restrict access to approved AWS services.
     - Resource Policy: enforce TLS connections, prevent cross deputy
     - (optional) Control Tower Proactive controls can be configured by the customer
 2. Logging: Control Tower using log-archive account
@@ -18,18 +18,18 @@ Feature Components
 3. Security: Control Tower using audit account as the delegated security admin for GuardDuty, and Security Hub
     - Threat Detection: GuardDuty
     - Compliance Monitoring: Security Hub
-    - Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
+    - BACKLOG: Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
     - BACKLOG: Inspector, Detective, Firewall Manager (pending availability in region)
 4. IAM: Control Tower IAM Identity Center (GA date unknown??) with identity federation to organization's Identity Provider (IdP). 
     - IAM Access Analyzer set Zone of Trust to "Organization" 
-    - Central Root management
+    - BACKLOG: Central Root management
 5. Network: central network account, with ANFW and Route53 DNS Firewall, TGW and centralized VPC endpoints
     - VPC created subnets (app-private, db-private, public) across 3 availability zones.
     - Use VPC interface endpoints for privatelink access to AWS services (S3, SSM, SSMMessages, EC2, Log, KMS, Secrets Manager, ECR)
-    - Customers can choose to deploy their own preferred network firewall e.g. Palo Alto or Fortinet as virtual appliances running as EC2 instances.
+    - (optional) Customers can choose to deploy either AWS Network Firewall or their preferred network firewall e.g. Palo Alto or Fortinet as virtual appliances running as EC2 instances.
     - BACKLOG: Firewall Manager Policies (GA date unknown), WAF
 6. Backup: shared services account 
-    - Backup policies (daily, weekly) at AWS Organization
+    - BACKLOG: Backup policies (daily, weekly) at AWS Organization
 7. Block Public Access at account level: IMDSv2, AMI, Snapshots, S3
     - BACKLOG: VPC BPA
 8. Compute Management: 
@@ -106,7 +106,7 @@ Key Policy
 1. Identify the AWS Organization identifer (format r-XXXXXX) from the AWS Organization console of the management account. This is an input parameter to the CloudFormation script "lz-organization.json".
 2. Create the required Organization Units (OU) - Infrastructure, Workloads, Production, NonProduction, Forensic. Use the CloudFormation script "lz-organization.json", use StackName "lz-organization"
 3. Create required KMS-CMK key for AWS Control Tower (manual creation). Refer above for sample KMS-CMK key for AWS Control Tower. 
-4. Create required KMS-CMK keys for CloudWatch Log Groups and required IAM roles for Backup and SSM. Use the CloudFormation script "lz-organization-kms-iam.json"
+4. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Use the CloudFormation script "lz-organization-kms-iam.json"
 5. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). Use the CloudFormation script "lz-organization-service-access.yaml", use StackName "lz-organization-service-access".
 6. Identify the OU identifer (format ou-XXXXXX) of the Infrastructure OU. Capture the OU to share the new Transit-Gateway resource. 
 aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> --query 'OrganizationalUnit.Arn'
@@ -120,7 +120,8 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
     - Don't create another OU
     - Don't enable AWS Backup (this will be done later)
 8. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, Firewall Manager, IAM Access Analyzer and Detective. Use the CloudFormation script "lz-delegate-native-security-services.yaml", use StackName "lz-delegate-security-services". Set the AdminAccountId parameter to the AWS Control Tower audit account.
-9. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. Use the CloudFormation scripts "lz-scp-baseline-guardrail.json", "lz-scp-data-guardrail.json", and "lz-scp-approved-services.json". use StackName "lz-scp-baseline-guardrails", "lz-scp-data-protection-guardrails", "lz-scp-approved-services" respectively.
+9. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. Use the CloudFormation scripts "lz-organization-scp-guardrail.json", and "lz-organization-scp-approved-services.json". use StackName "lz-scp-baseline-guardrails",  "lz-scp-approved-services" respectively.
+9. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies"
 10. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. Use the CloudFormation script "lz-organization-rcp-guardrails.json", use StackName "lz-rcp-baseline-guardrails".
 11. Enforce new AWS account security baseline for each member account in each home region. Use the CloudFormation script "lz-new-account-ec2-baseline.yaml", use StackName "lz-account-baseline"
     - Enforce EBS Default Encryption with KMS-Customer Managed Key
@@ -128,8 +129,12 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
     - Enforce IMDS defaults as mandatory
     - TODO: Set alternate security contact information
 12. Enforce S3 Block Public Access at account level. Use the CloudFormation script "lz-s3-bpa.yaml", use StackName "lz-s3-bpa".
-13. Login to new network account to run CloudFormation script "central-network-account.json". Name the new CloudFormation Stack name it as "central-network"
-
+13. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Note do not put Suspended OU under Control Tower management because this is for closed/suspended accounts.
+14. Configure AWS Backup for whole of organization. 
+    - Create new central backup account and backup administrator account under Infrastructure OU. 
+    - Enable AWS Backup from Control Tower --> Landing Zone Settings --> Modify settings
+15. Login to new network account to run CloudFormation script "lz-central-network.json". Name the new CloudFormation Stack name it as "lz-central-network"
+ 
 
 ## Post CloudFormation deployment configuration
 1. Set route to Firewall Endpoints in Route Tables
@@ -213,8 +218,9 @@ This will be used for all of the organization users to access the AWS environmen
 
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
 1. Login to the delegated administration account for SSM.
-1. Configure SSM Host Configuration Management Quick Start for the OUs (Workloads and Infrastructure). This ensures that all EC2 instances are managed by SSM Fleet Manager.
-2. Enable "Default Host Configuration" from SSM Fleet Manager.
+2. Configure SSM Host Configuration Management Quick Start for the OUs (Workloads and Infrastructure). This ensures that all EC2 instances are managed by SSM Fleet Manager.
+3. Enable "Default Host Configuration" from SSM Fleet Manager.
+https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
 
 ## Configure AWS Backup Plan and Policies
 (TODO: Provide AWS Backup plan CloudFormation)
