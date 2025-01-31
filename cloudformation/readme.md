@@ -2,26 +2,30 @@
 
 This beta release of the landing zone accelerator (LZA) is for Malaysia public sector agencies and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. CGSO cloud requirements are transposed into configurable infrastructure as code (IaC) scripts. 
 
-![Malaysia Landing Zone Architecture](/beta-release/images/malaysia-lza-presentation-lza.drawio.png)
+![Malaysia Landing Zone Architecture](/cloudformation/images/malaysia-lza-presentation-lza.drawio.png)
 
 
 Feature Components
 1. Management: AWS Organization and Control Tower
-    - Service Control Policy: region deny 
+    - Service Control Policy: region deny
     - Resource Policy: enforce TLS connections, prevent cross deputy
     - (optional) Control Tower Proactive controls can be configured by the customer
 2. Logging: Control Tower using log-archive account
+    - Organization CloudTrail
     - SSM Session Logs
     - WAF Logs
     - VPC Flow Logs
-3. Security: Control Tower using audit account as the delegated security admin for GuardDuty, Security Hub, Inspector, Firewall Manager
+3. Security: Control Tower using audit account as the delegated security admin for GuardDuty, and Security Hub
     - Threat Detection: GuardDuty
     - Compliance Monitoring: Security Hub
     - Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
-4. IAM: Control Tower IDC (GA date unknown) with identity federation to organization's IDP. 
+    - BACKLOG: Inspector, Detective, Firewall Manager (pending availability in region)
+4. IAM: Control Tower IAM Identity Center (GA date unknown??) with identity federation to organization's Identity Provider (IdP). 
     - IAM Access Analyzer set Zone of Trust to "Organization" 
-    - Root management
+    - Central Root management
 5. Network: central network account, with ANFW and Route53 DNS Firewall, TGW and centralized VPC endpoints
+    - VPC created subnets (app-private, db-private, public) across 3 availability zones.
+    - Use VPC interface endpoints for privatelink access to AWS services (S3, SSM, SSMMessages, EC2, Log, KMS, Secrets Manager, ECR)
     - Firewall Manager Policies (GA date unknown)
 6. Backup: shared services account 
     - Backup policies at AWS Organization
@@ -210,3 +214,6 @@ This will be used for all of the organization users to access the AWS environmen
 
 ## Configure AWS Backup Plan and Policies
 (TODO: Provide AWS Backup plan CloudFormation)
+
+## Feature Backlog
+
