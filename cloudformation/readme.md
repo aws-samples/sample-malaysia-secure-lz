@@ -7,7 +7,7 @@ This beta release of the landing zone accelerator (LZA) is for Malaysia public s
 
 Feature Components
 1. Management: AWS Organization and Control Tower
-    - Service Control Policy: region deny
+    - Service Control Policy: region deny, enforce data encryption
     - Resource Policy: enforce TLS connections, prevent cross deputy
     - (optional) Control Tower Proactive controls can be configured by the customer
 2. Logging: Control Tower using log-archive account
@@ -26,14 +26,17 @@ Feature Components
 5. Network: central network account, with ANFW and Route53 DNS Firewall, TGW and centralized VPC endpoints
     - VPC created subnets (app-private, db-private, public) across 3 availability zones.
     - Use VPC interface endpoints for privatelink access to AWS services (S3, SSM, SSMMessages, EC2, Log, KMS, Secrets Manager, ECR)
-    - Firewall Manager Policies (GA date unknown)
+    - Customers can choose to deploy their own preferred network firewall e.g. Palo Alto or Fortinet as virtual appliances running as EC2 instances.
+    - BACKLOG: Firewall Manager Policies (GA date unknown), WAF
 6. Backup: shared services account 
-    - Backup policies at AWS Organization
-7. Block Public Access at account level: VPC, IMDSv2, AMI, Snapshots, S3
+    - Backup policies (daily, weekly) at AWS Organization
+7. Block Public Access at account level: IMDSv2, AMI, Snapshots, S3
+    - BACKLOG: VPC BPA
 8. Compute Management: 
-    - EC2: Default Host Configuration Management, Default EBS encryption with KMS-CMK, with SSM Quick Starts for Host Management
-    - Containers: ECR has Inspector Enhanced Scanning
-    - Lambda: 
+    - EC2: Default Host Configuration Management, EBS Default encryption with KMS-CMK, with SSM Quick Starts for Host Management
+    - Containers: ECR has Inspector Enhanced Scanning 
+    - Lambda: None
+    - Aurora, RDS: enforce data-at-rest encryption with KMS-CMK
 9. Forensics: OU
 
 
