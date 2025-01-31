@@ -44,18 +44,17 @@ Feature Components
 Complete these validation checks before starting the deployment of the LZA. 
 1. AWS management account has been created. 
 2. AWS environment does not have any running workloads and services. 
-3. All deny Service Control Policies (SCPs) are detached from OUs.
-4. Validate which of these OU Organization structure (Infrastructure, Security, Workloads, Sandbox, Suspended) are created. If these are in place, comment these out from "organization-config.py".
-5. Prepare separate emails for log-archive and audit accounts that will be created when Control Tower is initiated.
-6. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
-7. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
-8. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
-9. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia LZA configuration pulled from (AWS source repo). AWS CodeConnections to connect and deploy to the target environment.
+3. All deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
+4. Prepare separate emails for log-archive and audit accounts that will be created when Control Tower is initiated.
+5. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
+6. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
+7. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
+8. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia LZA configuration pulled from (AWS source repo). AWS CodeConnections to connect and deploy to the target environment.
 
 
 ## Installation Steps
 1. *HOME-REGION* is Malaysia (ap-southeast-5).
-2. Prepare an AWS Organization (without AWS Control Tower) in management account. 
+2. Prepare an AWS Organization (without AWS Control Tower) in management account. Go to AWS Organization, and "Create an organization". Copy down the Organization ID, that will be used in subsequent steps.
 3. Create KMS Customer Managed Key (Symmetric, for Encrypt and Decrypt), KMS-CMK, for AWS Control Tower. This will be referenced during the setup of the Control Tower service in Step 7.
 Key Policy
 ```
@@ -115,7 +114,9 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
     - Create a log-archive account and an audit account as part of Control Tower implementation. 
     - Specify the KMS key id for Control Tower encryption
     - Specify Region Deny, to only govern these regions (us-east-1, and ap-southeast-5)
-    - Enable IAM Identity Center (IDC)
+    - Enable Organization-Level CloudTrail
+    - Set Log configuration for S3 to 1 year for retention and access logging
+    - Enable IAM Identity Center (IDC) (pending availability in region)
     - Don't create another OU
     - Don't enable AWS Backup (this will be done later)
 8. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, Firewall Manager, IAM Access Analyzer and Detective. Use the CloudFormation script "lz-delegate-native-security-services.yaml", use StackName "lz-delegate-security-services". Set the AdminAccountId parameter to the AWS Control Tower audit account.
