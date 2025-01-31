@@ -1,15 +1,25 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Creates KMS keys for Control Tower and CloudWatch Log Groups",
+    "Description": "Creates KMS keys for Control Tower Backup and CloudWatch Log Groups",
     "Parameters": {
         "KeyAdministratorArn": {
             "Type": "String",
             "Description": "ARN of IAM user/role that will administer the KMS keys"
         },
+        "OrganizationID": {
+            "Type": "String",
+            "Default": "o-",
+            "Description": "Your AWS Organization ID (starts with O-)"
+        },
         "CloudWatchKeyAlias": {
             "Type": "String",
             "Default": "alias/cloudwatch-logs-key",
             "Description": "Alias name for the CloudWatch Logs KMS key"
+        },
+        "ControlTowerBackupKeyAliasName": {
+            "Type": "String",
+            "Default": "alias/controltower-backup-key",
+            "Description": "Alias name for the Control Tower Backup KMS key"
         },
         "EnableKeyRotation": {
             "Type": "String",
@@ -193,6 +203,101 @@
                     "Ref": "CloudWatchLogsKey"
                 }
             }
+        },
+        "ControlTowerBackupKey": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Description": "KMS key for Control Tower Backup encryption",
+                "EnableKeyRotation": {
+                    "Ref": "EnableKeyRotation"
+                },
+                "KeyPolicy": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "Enable IAM User Permissions",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:root"
+                                }
+                            },
+                            "Action": "kms:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow Key Administrator",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Ref": "KeyAdministratorArn"
+                                }
+                            },
+                            "Action": [
+                                "kms:Create*",
+                                "kms:Describe*",
+                                "kms:Enable*",
+                                "kms:List*",
+                                "kms:Put*",
+                                "kms:Update*",
+                                "kms:Revoke*",
+                                "kms:Disable*",
+                                "kms:Get*",
+                                "kms:Delete*",
+                                "kms:TagResource",
+                                "kms:UntagResource",
+                                "kms:ScheduleKeyDeletion",
+                                "kms:CancelKeyDeletion"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow use of the KMS key for organization",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": "*"
+                            },
+                            "Action": [
+                                "kms:Encrypt*",                                
+                                "kms:ReEncrypt*",
+                                "kms:Decrypt*",
+                                "kms:DescribeKey",
+                                "kms:GetKeyPolicy",
+                                "kms:CreateGrant",
+                                "kms:ListGrants",
+                                "kms:RevokeGrant",
+                                "kms:GenerateDataKey*",
+                                "kms:Describe*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:PrincipalOrgID": {
+                                        "Ref": "OrganizationID"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "Purpose",
+                        "Value": "Control Tower Backup Encryption"
+                    }
+                ]
+            }
+        },
+        "ControlTowerBackupKeyAlias": {
+            "Type": "AWS::KMS::Alias",
+            "Properties": {
+                "AliasName": {
+                    "Ref": "ControlTowerBackupKeyAliasName"
+                },
+                "TargetKeyId": {
+                    "Ref": "ControlTowerBackupKey"
+                }
+            }
         }
     },
     "Outputs": {
@@ -207,6 +312,21 @@
             "Value": {
                 "Fn::GetAtt": [
                     "CloudWatchLogsKey",
+                    "Arn"
+                ]
+            }
+        },
+        "ControlTowerBackupKeyId": {
+            "Description": "ID of the Control Tower Backup KMS key",
+            "Value": {
+                "Ref": "ControlTowerBackupKey"
+            }
+        },
+        "ControlTowerBackupKeyArn": {
+            "Description": "ARN of the Control Tower Backup KMS key",
+            "Value": {
+                "Fn::GetAtt": [
+                    "ControlTowerBackupKey",
                     "Arn"
                 ]
             }
