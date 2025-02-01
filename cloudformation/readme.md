@@ -108,9 +108,7 @@ Key Policy
 3. Create required KMS-CMK key for AWS Control Tower (manual creation). Refer above for sample KMS-CMK key for AWS Control Tower. 
 4. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Use the CloudFormation script "lz-organization-kms-iam.json"
 5. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). Use the CloudFormation script "lz-organization-service-access.yaml", use StackName "lz-organization-service-access".
-6. Identify the OU identifer (format ou-XXXXXX) of the Infrastructure OU. Capture the OU to share the new Transit-Gateway resource. 
-aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> --query 'OrganizationalUnit.Arn'
-7. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
+6. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
     - Create a log-archive account and an audit account as part of Control Tower implementation. 
     - Specify the KMS key id for Control Tower encryption
     - Specify Region Deny, to only govern these regions (us-east-1, and ap-southeast-5)
@@ -119,8 +117,8 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
     - Enable IAM Identity Center (IDC) in us-east-1 (pending availability in Malaysia region)
     - Don't create another OU
     - Don't enable AWS Backup (this will be done later)
-8. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, Firewall Manager, IAM Access Analyzer and Detective. Use the CloudFormation script "lz-delegate-native-security-services.yaml", use StackName "lz-delegate-security-services". Set the AdminAccountId parameter to the AWS Control Tower audit account.
-9. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. Use the CloudFormation scripts "lz-organization-scp-guardrail.json", and "lz-organization-scp-approved-services.json". use StackName "lz-scp-baseline-guardrails",  "lz-scp-approved-services" respectively.
+7. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, Firewall Manager, IAM Access Analyzer and Detective. Use the CloudFormation script "lz-delegate-native-security-services.yaml", use StackName "lz-delegate-security-services". Set the AdminAccountId parameter to the AWS Control Tower audit account.
+8. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. Use the CloudFormation scripts "lz-organization-scp-guardrail.json", and "lz-organization-scp-approved-services.json". use StackName "lz-scp-baseline-guardrails",  "lz-scp-approved-services" respectively.
 9. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies"
 10. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. Use the CloudFormation script "lz-organization-rcp-guardrails.json", use StackName "lz-rcp-baseline-guardrails".
 11. Enforce new AWS account security baseline for each member account in each home region. Use the CloudFormation script "lz-new-account-ec2-baseline.yaml", use StackName "lz-account-baseline"
@@ -129,11 +127,16 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
     - Enforce IMDS defaults as mandatory
     - TODO: Set alternate security contact information
 12. Enforce S3 Block Public Access at account level. Use the CloudFormation script "lz-s3-bpa.yaml", use StackName "lz-s3-bpa".
-13. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not put "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
+13. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
 14. Configure AWS Backup for whole of organization. 
     - Create new central backup account and backup administrator account under Infrastructure OU. 
     - Enable AWS Backup from Control Tower --> Landing Zone Settings --> Modify settings
-15. Login to new network account to run CloudFormation script "lz-central-network.json". Name the new CloudFormation Stack name it as "lz-central-network"
+15. Setup centralized networking account. 
+    - Capture the OU to share the new Transit-Gateway resource. 
+```
+aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> --query 'OrganizationalUnit.Arn'
+```
+    - Login to new network account to run CloudFormation script "lz-central-network.json". Name the new CloudFormation Stack name it as "lz-central-network". 6. Identify the OU identifer (format ou-XXXXXX) of the Infrastructure OU. 
  
 
 ## Post CloudFormation deployment configuration
@@ -194,7 +197,7 @@ This will be used for all of the organization users to access the AWS environmen
     - Lambda Network Activity Monitoring
     - Malware Protection for EC2
 3. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. Use the CloudFormation script "lz-audit-access-analyzer.yaml", use StackName "lz-audit-access-analyzer". 
-4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). 
+4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
         - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
@@ -206,6 +209,7 @@ This will be used for all of the organization users to access the AWS environmen
         - [ELB.14] Classic Load Balancer should be configured with defensive or strictest desync mitigation mode
         - [Macie.1] Amazon Macie should be enabled
         - [Macie.2] Macie automated sensitive data discovery should be enabled
+    - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources. WORKAROUND: The above central configuration has to be done manually.
 4. Create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
 ```
 {
@@ -223,13 +227,23 @@ This will be used for all of the organization users to access the AWS environmen
 ```
 
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
-1. Login to the delegated administration account for SSM.
-2. Configure SSM Host Configuration Management Quick Start for the OUs (Workloads and Infrastructure). This ensures that all EC2 instances are managed by SSM Fleet Manager.
-3. Enable "Default Host Configuration" from SSM Fleet Manager.
-https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
+1. Register SharedServices account as delegated administrator for Systems Manager Quick Setup. Go to AWS Systems Manager console in management account, choose Quick Setup and Settings, enter the SharedServices account for the delegated administrator. https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-register-delegated-administrator.html
+2. Login to the SharedServices delegated administration account for SSM.
+3. Configure SSM Quick Setup Host Management for these OUs (Workloads, Security and Infrastructure). This ensures that all EC2 instances are managed by SSM Fleet Manager.
+    - Go to AWS Systems Manager console in management account, choose Quick Setup for Host Management.
+    - Update Systems Manager (SSM) Agent every two weeks.
+    - Collect inventory from your instances every 30 minutes.
+    - Scan instances for missing patches daily.
+    - Targets section should specify these OUs (Workloads, Security and Infrastructure) and governed home region (ap-southeast-5) for host management configuration to be deployed.
+4. Configure SSM AWS Resource Explorer using Quick Setup. https://docs.aws.amazon.com/systems-manager/latest/userguide/Resource-explorer-quick-setup.html
+    - Go to AWS Systems Manager console in management account, choose Quick Setup for Resource Explorer.
+    - Set Aggregator Index Region to ap-southeast-5
+    - Targets section should specify these OUs (Workloads, Security and Infrastructure) and governed home region (ap-southeast-5) 
+5. Enable "Default Host Configuration" from SSM Fleet Manager. https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
 
 ## Configure AWS Backup Plan and Policies
 (TODO: Provide AWS Backup plan CloudFormation)
 
 ## Feature Backlog
-
+1. Enable AWS Inspector for all accounts.
+2. Enable AWS Firewall Manager and policies for all accounts.
