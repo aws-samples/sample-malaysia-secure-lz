@@ -116,7 +116,7 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
     - Specify Region Deny, to only govern these regions (us-east-1, and ap-southeast-5)
     - Enable Organization-Level CloudTrail
     - Set Log configuration for S3 to 1 year for retention and access logging
-    - Enable IAM Identity Center (IDC) (pending availability in region)
+    - Enable IAM Identity Center (IDC) in us-east-1 (pending availability in Malaysia region)
     - Don't create another OU
     - Don't enable AWS Backup (this will be done later)
 8. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, Firewall Manager, IAM Access Analyzer and Detective. Use the CloudFormation script "lz-delegate-native-security-services.yaml", use StackName "lz-delegate-security-services". Set the AdminAccountId parameter to the AWS Control Tower audit account.
@@ -129,7 +129,7 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
     - Enforce IMDS defaults as mandatory
     - TODO: Set alternate security contact information
 12. Enforce S3 Block Public Access at account level. Use the CloudFormation script "lz-s3-bpa.yaml", use StackName "lz-s3-bpa".
-13. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Note do not put Suspended OU under Control Tower management because this is for closed/suspended accounts.
+13. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not put "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
 14. Configure AWS Backup for whole of organization. 
     - Create new central backup account and backup administrator account under Infrastructure OU. 
     - Enable AWS Backup from Control Tower --> Landing Zone Settings --> Modify settings
@@ -188,7 +188,14 @@ This will be used for all of the organization users to access the AWS environmen
 
 ## Configure AWS Security Services
 1. Login to the delegated administration account for security i.e. Control Tower audit account.
-2. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). 
+2. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts: 
+    - S3 Protection
+    - Runtime Monitoring
+    - Lambda Network Activity Monitoring
+    - Malware Protection for EC2
+    Use the CloudFormation script "lz-audit-guardduty.yaml", use StackName "lz-audit-guardduty".
+3. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. Use the CloudFormation script "lz-audit-access-analyzer.yaml", use StackName "lz-audit-access-analyzer". 
+4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
         - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
@@ -200,7 +207,7 @@ This will be used for all of the organization users to access the AWS environmen
         - [ELB.14] Classic Load Balancer should be configured with defensive or strictest desync mitigation mode
         - [Macie.1] Amazon Macie should be enabled
         - [Macie.2] Macie automated sensitive data discovery should be enabled
-3. Create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
+4. Create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
 ```
 {
   "source": ["aws.securityhub"],
