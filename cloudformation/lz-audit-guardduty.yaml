@@ -1,0 +1,183 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "AWS GuardDuty with Protection Plans at AWS Organization level."
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Lambda Function Configuration"
+        Parameters:
+          - LoggingLevel
+      - Label:
+          default: "AWS Native Security Services Configuration"
+        Parameters:
+          - DelegatedSecurityAdminAccount
+          - GuardDutyEnable
+          - SecurityHubEnable
+          - IAMAccessAnalyzerEnable
+      - Label:
+          default: "Security Services Configuration"
+    ParameterLabels:
+      DelegatedSecurityAdminAccount:
+        default: "Fill in Security Audit Admin Account"
+      GuardDutyEnable:
+        default: "GuardDuty"
+      SecurityHubEnable:
+        default: "Security Hub"
+      LoggingLevel:
+        default: "Logging Level"
+
+Parameters:
+  GuardDutyDetectorId:
+    Type: String
+    Description: "GuardDuty Detector ID in home region of delegated security administrator account"
+  MalwareProtection:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable GuardDuty Malware Protection for EC2."
+    Type: String
+  S3Protection:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable GuardDuty S3 Protection."
+    Type: String
+  RuntimeMonitoring:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable Runtime Monitoring for EKS and EC2."
+    Type: String
+  LoggingLevel:
+    AllowedValues: ["CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING"]
+    Default: "INFO"
+    Description: "The logging level for the Lambda function."
+    Type: String
+
+Resources:
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
+      Description: "Used by the Lambda to update AWS GuardDuty configuration."
+      Policies:
+        - PolicyName: LambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: Allow
+                Action:
+                  - "guardduty:UpdateOrganizationConfiguration"
+                  - "guardduty:DescribeOrganizationConfiguration"
+                  - "organizations:ListDelegatedAdministrators"
+                  - "organizations:ListAWSServiceAccessForOrganization"
+                  - "organizations:DescribeOrganizationalUnit"
+                  - "organizations:DescribeAccount"
+                  - "organizations:DescribeOrganization"
+                  - "organizations:ListAccounts"
+                  - "sts:GetCallerIdentity"
+                Resource: "*"
+      RoleName: "guardduty-configuration-lambda"
+
+  GuardDutyConfigurationLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Architectures:
+        - x86_64
+      Code:
+        ZipFile: |
+          import os
+          import logging
+          import boto3
+          from botocore.exceptions import ClientError
+          import cfnresponse
+          logger = logging.getLogger()
+          logger.setLevel(os.environ['LOGGING_LEVEL'])
+          guardduty_client = boto3.client("guardduty")
+          sts_client = boto3.client('sts')
+          account_id = sts_client.get_caller_identity()["Account"]
+          def lambda_handler(event, context):
+              logger.info(f"Received event: {event}")
+              physical_id = event['LogicalResourceId']
+              detectorId = event['ResourceProperties']['GuardDutyDetectorId']
+              try:
+                  if event['RequestType'] in ['Create', 'Update']:
+                      guardduty_client.update_organization_configuration(
+                          DetectorId=detectorId,
+                          AutoEnableOrganizationMembers='ALL',
+                          Features=[
+                              {'Name': 'S3_DATA_EVENTS', 'AutoEnable': 'ALL'},
+                              {'Name': 'EKS_AUDIT_LOGS', 'AutoEnable': 'ALL'},
+                              {'Name': 'EBS_MALWARE_PROTECTION', 'AutoEnable': 'ALL'},
+                              {'Name': 'RDS_LOGIN_EVENTS', 'AutoEnable': 'ALL'},
+                              {'Name': 'LAMBDA_NETWORK_LOGS', 'AutoEnable': 'ALL'},
+                              {'Name': 'RUNTIME_MONITORING', 'AutoEnable': 'ALL'},
+                          ]                          
+                      )
+                      logger.info("GuardDuty configuration updated successfully")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
+                  elif event['RequestType'] == 'Delete':
+                      guardduty_client.update_organization_configuration(
+                          DetectorId=detectorId,
+                          AutoEnableOrganizationMembers='NONE',
+                          Features=[
+                              {'Name': 'S3_DATA_EVENTS', 'AutoEnable': 'NONE'},
+                              {'Name': 'EKS_AUDIT_LOGS', 'AutoEnable': 'NONE'},
+                              {'Name': 'EBS_MALWARE_PROTECTION', 'AutoEnable': 'NONE'},
+                              {'Name': 'RDS_LOGIN_EVENTS', 'AutoEnable': 'NONE'},
+                              {'Name': 'LAMBDA_NETWORK_LOGS', 'AutoEnable': 'NONE'},
+                              {'Name': 'RUNTIME_MONITORING', 'AutoEnable': 'NONE'},
+                          ]                          
+                      )
+                      logger.info("GuardDuty configuration reset successfully")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
+                  else:
+                      logger.error(f"Invalid request type: {event['RequestType']}")
+                      cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
+              except Exception as e:
+                  logger.error(f"Error: {str(e)}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)            
+      Description: "Updates and deletes the AWS GuardDuty configuration at organization level in a region."
+      Environment:
+        Variables:
+          LOGGING_LEVEL: !Ref LoggingLevel
+      FunctionName: "security-services-guardduty-configuration"
+      Handler: index.lambda_handler
+      LoggingConfig:
+        LogGroup: !Ref GuardDutyConfigurationLambdaLogGroup
+      MemorySize: 128
+      PackageType: Zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: python3.13
+      Timeout: 10
+
+  GuardDutyConfigurationLambdaLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      RetentionInDays: 7
+
+  GuardDutyConfiguration:
+    Type: "Custom::GuardDutyConfiguration"
+    Properties:
+      GuardDutyDetectorId: !Ref GuardDutyDetectorId
+      MalwareProtection: !Ref MalwareProtection
+      S3Protection: !Ref S3Protection
+      RuntimeMonitoring: !Ref RuntimeMonitoring
+      ServiceToken: !GetAtt GuardDutyConfigurationLambda.Arn
+
+Outputs:
+  GuardDutyConfigurationLambda:
+    Description: Lambda function for updating AWS GuardDuty configuration.
+    Value: !Ref GuardDutyConfigurationLambda
