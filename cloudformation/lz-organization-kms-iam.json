@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "Creates KMS keys for Control Tower Backup and CloudWatch Log Groups",
+    "Description": "Creates KMS keys for Control Tower Backup and CloudWatch Log Groups. Exception: Control Tower Backup requires KMS-CMK to be multi-region.",
     "Parameters": {
         "KeyAdministratorArn": {
             "Type": "String",
@@ -211,6 +211,7 @@
                 "EnableKeyRotation": {
                     "Ref": "EnableKeyRotation"
                 },
+                "MultiRegion": true,
                 "KeyPolicy": {
                     "Version": "2012-10-17",
                     "Statement": [
