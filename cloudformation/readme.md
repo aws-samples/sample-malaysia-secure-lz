@@ -30,8 +30,10 @@ Feature Components
     - (optional) Customers can choose to deploy either AWS Network Firewall or their preferred network firewall e.g. Palo Alto or Fortinet as virtual appliances running as EC2 instances.
     - BACKLOG: Firewall Manager Policies (GA date unknown)
     - WAF: Baseline WAF configuration to attach to publicly accessible resources.
-6. Backup: shared services account 
-    - BACKLOG: Backup policies (daily, weekly) at AWS Organization
+6. Backup: shared services account, and backup vault account 
+    - Centrally managed using Control Tower Backup feature.
+    - Backup policies (daily, weekly) configured and member accounts have local backup vaults. 
+    - Backup policies move snapshots up to central backup vault at a later stage.
 7. Block Public Access at account level: IMDSv2, AMI, Snapshots, S3
     - BACKLOG: VPC BPA
 8. Compute Management: 
@@ -110,6 +112,7 @@ Key Policy
 2. Create the required Organization Units (OU) - Infrastructure, Workloads, Production, NonProduction, Forensic. Use the CloudFormation script "lz-organization.json", use StackName "lz-organization"
 3. Create required KMS-CMK key for AWS Control Tower (manual creation). Refer above for sample KMS-CMK key for AWS Control Tower. 
 4. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Exception: Control Tower Backup feature requires KMS-CMK to be multi-region for management across multi-account and governed regions in a central backup vault. Use the CloudFormation script "lz-organization-kms-iam.json"
+    - For the Control Tower Backup key, ensure to create a new replica key in us-east-1 and any other additional governed region. Go to KMS console, select the "control-tower-backup-key", go to "Regionality" and "Create new replica keys" for us-east-1.
 5. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). Use the CloudFormation script "lz-organization-service-access.yaml", use StackName "lz-organization-service-access".
 6. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
     - Create a log-archive account and an audit account as part of Control Tower implementation. 
@@ -120,7 +123,16 @@ Key Policy
     - Enable IAM Identity Center (IDC) in us-east-1 (pending availability in Malaysia region)
     - Don't create another OU
     - Don't enable AWS Backup (this will be done later)
-7. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, Firewall Manager, IAM Access Analyzer and Detective. Use the CloudFormation script "lz-delegate-native-security-services.yaml", use StackName "lz-delegate-security-services". Set the AdminAccountId parameter to the AWS Control Tower audit account.
+7. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
+    - Deployment Region: Malaysia ap-southeast-5
+    - CloudFormation script: "lz-delegate-native-security-services.yaml"
+    - StackName: "lz-delegate-security-services".
+    - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.
+8. Delegate Firewall Manager security administration for centralized network management using policies. 
+    - Deployment Region: N. Virginia us-east-1
+    - CloudFormation script: "lz-delegate-firewall-manager.yaml"
+    - StackName: "lz-delegate-firewall-manager".
+    - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.    
 8. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. Use the CloudFormation scripts "lz-organization-scp-guardrail.json", and "lz-organization-scp-approved-services.json". use StackName "lz-scp-baseline-guardrails",  "lz-scp-approved-services" respectively.
 9. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies"
 10. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. Use the CloudFormation script "lz-organization-rcp-guardrails.json", use StackName "lz-rcp-baseline-guardrails".
