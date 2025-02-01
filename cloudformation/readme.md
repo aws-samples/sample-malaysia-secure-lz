@@ -188,13 +188,12 @@ This will be used for all of the organization users to access the AWS environmen
 
 ## Configure AWS Security Services
 1. Login to the delegated administration account for security i.e. Control Tower audit account.
-2. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts: 
+2. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts. Use the CloudFormation script "lz-audit-guardduty.yaml", use StackName "lz-audit-guardduty".
     - S3 Protection
     - Runtime Monitoring
     - Lambda Network Activity Monitoring
     - Malware Protection for EC2
-    Use the CloudFormation script "lz-audit-guardduty.yaml", use StackName "lz-audit-guardduty".
-3. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. Use the CloudFormation script "lz-audit-access-analyzer.yaml", use StackName "lz-audit-access-analyzer". 
+3. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. Use the CloudFormation script "lz-audit-access-analyzer.yaml", use StackName "lz-audit-access-analyzer". 
 4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, ap-southeast-1 and ap-southeast-2). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
