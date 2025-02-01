@@ -12,9 +12,10 @@ Feature Components
     - (optional) Control Tower Proactive controls can be configured by the customer
 2. Logging: Control Tower using log-archive account
     - Organization CloudTrail
-    - SSM Session Logs
-    - WAF Logs
-    - VPC Flow Logs
+    - S3 Access Logs
+    - BACKLOG: SSM Session Logs
+    - BACKLOG: WAF Logs
+    - BACKLOG: VPC Flow Logs
 3. Security: Control Tower using audit account as the delegated security admin for GuardDuty, and Security Hub
     - Threat Detection: GuardDuty
     - Compliance Monitoring: Security Hub
@@ -27,7 +28,8 @@ Feature Components
     - VPC created subnets (app-private, db-private, public) across 3 availability zones.
     - Use VPC interface endpoints for privatelink access to AWS services (S3, SSM, SSMMessages, EC2, Log, KMS, Secrets Manager, ECR)
     - (optional) Customers can choose to deploy either AWS Network Firewall or their preferred network firewall e.g. Palo Alto or Fortinet as virtual appliances running as EC2 instances.
-    - BACKLOG: Firewall Manager Policies (GA date unknown), WAF
+    - BACKLOG: Firewall Manager Policies (GA date unknown)
+    - WAF: Baseline WAF configuration to attach to publicly accessible resources.
 6. Backup: shared services account 
     - BACKLOG: Backup policies (daily, weekly) at AWS Organization
 7. Block Public Access at account level: IMDSv2, AMI, Snapshots, S3
@@ -36,7 +38,7 @@ Feature Components
     - EC2: Default Host Configuration Management, EBS Default encryption with KMS-CMK, with SSM Quick Starts for Host Management
     - Containers: ECR has Inspector Enhanced Scanning 
     - Lambda: None
-    - Aurora, RDS: enforce data-at-rest encryption with KMS-CMK
+    - Aurora, RDS, EFS: enforce data-at-rest encryption with KMS-CMK
 9. Forensics: OU
 
 
@@ -46,10 +48,11 @@ Complete these validation checks before starting the deployment of the LZA.
 2. AWS environment does not have any running workloads and services. 
 3. All deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
 4. Prepare separate emails for log-archive and audit accounts that will be created when Control Tower is initiated.
-5. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
-6. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
-7. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
-8. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia LZA configuration pulled from (AWS source repo). AWS CodeConnections to connect and deploy to the target environment.
+5. Create sharedservices account and backup-vault account that will be referenced during Control Tower Backup setup.
+6. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
+7. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
+8. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
+9. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia LZA configuration pulled from (AWS source repo). 
 
 
 ## Installation Steps
@@ -106,7 +109,7 @@ Key Policy
 1. Identify the AWS Organization identifer (format r-XXXXXX) from the AWS Organization console of the management account. This is an input parameter to the CloudFormation script "lz-organization.json".
 2. Create the required Organization Units (OU) - Infrastructure, Workloads, Production, NonProduction, Forensic. Use the CloudFormation script "lz-organization.json", use StackName "lz-organization"
 3. Create required KMS-CMK key for AWS Control Tower (manual creation). Refer above for sample KMS-CMK key for AWS Control Tower. 
-4. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Use the CloudFormation script "lz-organization-kms-iam.json"
+4. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Exception: Control Tower Backup feature requires KMS-CMK to be multi-region for management across multi-account and governed regions in a central backup vault. Use the CloudFormation script "lz-organization-kms-iam.json"
 5. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). Use the CloudFormation script "lz-organization-service-access.yaml", use StackName "lz-organization-service-access".
 6. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
     - Create a log-archive account and an audit account as part of Control Tower implementation. 
