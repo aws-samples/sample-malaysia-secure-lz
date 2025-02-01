@@ -163,8 +163,7 @@ Key Policy
     - Enforce EBS Default Encryption with KMS-Customer Managed Key
     - Enforce Block Public Access for EBS snapshots
     - Enforce IMDS defaults as mandatory
-    - TODO: Set alternate security contact information
-
+    - BACKLOG: Set alternate security contact information
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-new-account-ec2-baseline.yaml"
     - StackName: "lz-account-baseline"
@@ -237,12 +236,18 @@ This will be used for all of the organization users to access the AWS environmen
 
 ## Configure AWS Security Services
 1. Login to the delegated administration account for security i.e. Control Tower audit account.
-2. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts. Use the CloudFormation script "lz-audit-guardduty.yaml", use StackName "lz-audit-guardduty".
+2. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts.
     - S3 Protection
     - Runtime Monitoring
     - Lambda Network Activity Monitoring
     - Malware Protection for EC2
-3. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. Use the CloudFormation script "lz-audit-access-analyzer.yaml", use StackName "lz-audit-access-analyzer". 
+    - Deployment Region: Malaysia ap-southeast-5
+    - CloudFormation script: "lz-audit-guardduty.yaml"
+    - StackName: "lz-audit-guardduty"
+3. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. 
+    - Deployment Region: Malaysia ap-southeast-5
+    - CloudFormation script: "lz-audit-access-analyzer.yaml"
+    - StackName: "lz-audit-access-analyzer"
 4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
@@ -288,7 +293,11 @@ This will be used for all of the organization users to access the AWS environmen
 5. Enable "Default Host Configuration" from SSM Fleet Manager. https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
 
 ## Configure AWS Backup Plan and Policies
-(TODO: Provide AWS Backup plan CloudFormation)
+AWS Control Tower provides these 4 types of backup policies (hourly, daily, weekly and monthly), and each account that is under AWS Backup management will have its own Backup Vault. A Central Backup Vault "aws-controltower-central-backupvault-*" is created in the Central Backup Vault account. Resources in the member accounts need to be tagged with this one of these tags for it be include in the backup scope. https://docs.aws.amazon.com/controltower/latest/userguide/backup.html
+- aws-control-tower-backuphourly: true
+- aws-control-tower-backupdaily: true
+- aws-control-tower-backupweekly: true
+- aws-control-tower-backupmonthly: true
 
 ## Feature Backlog
 1. Enable AWS Inspector for all accounts.
