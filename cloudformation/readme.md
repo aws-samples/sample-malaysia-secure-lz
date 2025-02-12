@@ -299,6 +299,13 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 - aws-control-tower-backupweekly: true
 - aws-control-tower-backupmonthly: true
 
+## Troubleshooting
+1. CloudFormation deployment issues
+- Go to AWS CloudFormation console, and select the Stack that has identified issues.
+- Review the "Events" tab, and click on "View root cause" to identify the specific action that caused the failed deployment.
+- Review the Lambda function's CloudWatch log group events to determine what may have caused the issues. Go to "Resources" tab and select the LambdaLogGroup to review the log stream events.
+
 ## Feature Backlog
 1. Enable AWS Inspector for all accounts.
 2. Enable AWS Firewall Manager and policies for all accounts.
+3. Test using StackSets to automatically deploy lz-new-account-baseline.yaml in new accounts
