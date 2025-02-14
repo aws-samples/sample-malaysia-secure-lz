@@ -155,14 +155,14 @@ Resources:
       PackageType: Zip
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.12
-      Timeout: 10
+      Timeout: 60
 
   S3PublicAccessBlockLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      RetentionInDays: 7
+      RetentionInDays: 14
 
   S3PublicAccessBlock:
     Type: "Custom::S3PublicAccessBlock"
