@@ -1,6 +1,6 @@
-# Malaysia LZA (Beta)
+# Malaysia SLZ (Beta)
 
-This beta release of the landing zone accelerator (LZA) is for Malaysia public sector agencies and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. CGSO cloud requirements are transposed into configurable infrastructure as code (IaC) scripts. 
+This beta release of the Secure Landing Zone (SLZ) is for Malaysia public sector agencies and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. CGSO cloud requirements are transposed into configurable infrastructure as code (IaC) scripts. 
 
 ![Malaysia Landing Zone Architecture](/cloudformation/images/malaysia-lza-presentation-lza.drawio.png)
 
@@ -45,7 +45,7 @@ Feature Components
 
 
 ## Prerequisites:
-Complete these validation checks before starting the deployment of the LZA. 
+Complete these validation checks before starting the deployment of the SLZ. 
 1. AWS management account has been created. 
 2. Create a Shared Services that is used for backup administration, IAM Identity Center administration delegation and other common cloud operation actions.
 3. Create a Central Backup account that is used for the central storage of backups.
@@ -56,7 +56,7 @@ Complete these validation checks before starting the deployment of the LZA.
 6. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
 7. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
 8. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
-9. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia LZA configuration pulled from (AWS source repo). 
+9. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia SLZ configuration pulled from (AWS source repo). 
 
 
 ## Installation Steps
@@ -228,9 +228,9 @@ aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> 
 This will be used for all of the organization users to access the AWS environment.
 1. Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
 2. Configure these required IAM Permission Sets. (TODO: specify the permissions in table)
-    - LZA-ProductionSupport-Access
-    - LZA-Developer-Access
-    - LZA-Security-Access
+    - SLZ-ProductionSupport-Access
+    - SLZ-Developer-Access
+    - SLZ-Security-Access
 3. Configure the default identity directory to set MFA is required for all sign-ins. 
 
 ## Configure AWS Security Services
