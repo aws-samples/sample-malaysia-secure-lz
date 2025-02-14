@@ -47,6 +47,8 @@ Feature Components
 ## Prerequisites:
 Complete these validation checks before starting the deployment of the LZA. 
 1. AWS management account has been created. 
+2. Create a Shared Services that is used for backup administration, IAM Identity Center administration delegation and other common cloud operation actions.
+3. Create a Central Backup account that is used for the central storage of backups.
 2. AWS environment does not have any running workloads and services. 
 3. All deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
 4. Prepare separate emails for log-archive and audit accounts that will be created when Control Tower is initiated.
@@ -132,7 +134,7 @@ Key Policy
     - Enable Organization-Level CloudTrail
     - Set Log configuration for S3 to 1 year for both S3 retention and S3 access logging
     - Enable IAM Identity Center (IDC) in us-east-1 (pending availability in Malaysia region)
-    - (Optional) Enable AWS Backup if the Shared Services account and BackupVault account are created. This can be optionally enabled later. 
+    - Enable AWS Backup for whole of organization. Specify the new Shared Services (for backup administration) and central backup accounts. These accounts should not be enrolled under AWS Control Tower at the start.
     - Don't create another OU
 7. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
     - Deployment Region: Malaysia ap-southeast-5
@@ -173,10 +175,7 @@ Key Policy
     - CloudFormation script: "lz-s3-bpa.yaml"
     - StackName: "lz-s3-bpa"
 14. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
-15. Configure AWS Backup for whole of organization. Skip this step if this was done at Step 6 under Control Tower setup.
-    - Create new central backup account and backup administrator account under Infrastructure OU. 
-    - Enable AWS Backup from Control Tower --> Landing Zone Settings --> Modify settings
-16. Setup centralized networking account. 
+15. Setup centralized networking account. 
     - Capture the OU to share the new Transit-Gateway resource. 
 ```
 aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> --query 'OrganizationalUnit.Arn'
@@ -303,7 +302,7 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 1. CloudFormation deployment issues
 - Go to AWS CloudFormation console, and select the Stack that has identified issues.
 - Review the "Events" tab, and click on "View root cause" to identify the specific action that caused the failed deployment.
-- Review the Lambda function's CloudWatch log group events to determine what may have caused the issues. Go to "Resources" tab and select the LambdaLogGroup to review the log stream events.
+- Review the Lambda function's CloudWatch log group events to determine what may have caused the issues. Go to "Resources" tab and select the LambdaLogGroup to review the log stream events and to identify the potential root causes.
 
 ## Feature Backlog
 1. Enable AWS Inspector for all accounts.
