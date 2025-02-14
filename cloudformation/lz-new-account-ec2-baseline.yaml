@@ -248,14 +248,14 @@ Resources:
       PackageType: Zip
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
-      Timeout: 10
+      Timeout: 60
 
   EC2DataProtectionSecurityUpdateLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      RetentionInDays: 7
+      RetentionInDays: 14
 
   EC2DataProtectionSecurity:
     Type: "Custom::EC2DataProtectionSecurity"
