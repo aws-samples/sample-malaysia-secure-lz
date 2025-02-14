@@ -258,14 +258,14 @@ Resources:
       PackageType: Zip
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
-      Timeout: 10
+      Timeout: 60
 
   OrganizationServiceTrustedAccessLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      RetentionInDays: 7
+      RetentionInDays: 14
 
   OrganizationServiceTrustedAccess:
     Type: "Custom::OrganizationServiceTrustedAccess"
