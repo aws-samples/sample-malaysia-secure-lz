@@ -177,11 +177,11 @@ Key Policy
 14. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
 15. Setup centralized networking account. 
     - Capture the OU to share the new Transit-Gateway resource. 
-```
-aws organizations describe-organizational-unit --organizational-unit-id <OU_ID> --query 'OrganizationalUnit.Arn'
-```
-    - Login to new network account to run CloudFormation script "lz-central-network.json". Name the new CloudFormation Stack name it as "lz-central-network". 6. Identify the OU identifer (format ou-XXXXXX) of the Infrastructure OU. 
- 
+    - Login to new network account to run CloudFormation script that deploys the VPC, AWS Network Firewall, Transit Gateway and Subnets. 
+        - Deployment Region: Malaysia ap-southeast-5
+        - CloudFormation script: "lz-central-network.json"
+        - StackName: "lz-central-network"
+    - Identify the OU identifer (format ou-XXXXXX) of the "Infrastructure" OU.  
 
 ## Post CloudFormation deployment configuration
 1. Set route to Firewall Endpoints in Route Tables
