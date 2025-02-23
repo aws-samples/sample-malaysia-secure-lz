@@ -111,6 +111,7 @@
                                         "logs:*",
                                         "macie2:*",
                                         "mq:*",
+                                        "network-firewall",
                                         "organizations:*",
                                         "quicksight:*",
                                         "ram:*",
