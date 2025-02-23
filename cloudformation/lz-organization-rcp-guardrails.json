@@ -47,9 +47,6 @@
                                 },
                                 "Bool": {
                                     "aws:PrincipalIsAWSService": "true"
-                                },
-                                "Null": {
-                                    "aws:SourceAccount": "false"
                                 }
                             }
                         },
@@ -64,18 +61,6 @@
                                     "s3:TlsVersion": [
                                         "1.2"
                                     ]
-                                }
-                            }
-                        },
-                        {
-                            "Sid": "EnforceKMSEncryption",
-                            "Effect": "Deny",
-                            "Principal": "*",
-                            "Action": "s3:PutObject",
-                            "Resource": "*",
-                            "Condition": {
-                                "Null": {
-                                    "s3:x-amz-server-side-encryption-aws-kms-key-id": "true"
                                 }
                             }
                         }
