@@ -13,8 +13,8 @@
             "Default": "NetworkEndpoints"
         },
         "TransitGatewayResourceShareTargets": {
-            "Description": "Principals to associate with resource share (account id, arn of OU, arn of IAM, role or arn of IAM user)",
-            "Type": "String",
+            "Type": "CommaDelimitedList",
+            "Description": "Principals to associate with Transit Gateway resource share (account id, arn of OU, arn of IAM, role or arn of IAM user). Recommend to use ID of the Organizational Unit to attach the policy (starts with 'ou-')",
             "Default": "ORGANIZATION_OU_ARN"
         },
         "KeyAdministratorArn": {
@@ -2065,11 +2065,9 @@
                     ]
                 },
                 "AllowExternalPrincipals": false,
-                "Principals": [
-                    {
+                "Principals": {
                         "Ref": "TransitGatewayResourceShareTargets"
-                    }
-                ],
+                },
                 "ResourceArns": [
                     {
                         "Fn::GetAtt": [
