@@ -176,37 +176,21 @@ Key Policy
     - StackName: "lz-s3-bpa"
 14. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
 15. Setup centralized networking account. 
-    - Capture the OU to share the new Transit-Gateway resource. 
+    - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ROOT-OU-ID/INFRASTRUCTURE-OU-ID
     - Login to new network account to run CloudFormation script that deploys the VPC, AWS Network Firewall, Transit Gateway and Subnets. 
         - Deployment Region: Malaysia ap-southeast-5
         - CloudFormation script: "lz-central-network.json"
         - StackName: "lz-central-network"
-    - Identify the OU identifer (format ou-XXXXXX) of the "Infrastructure" OU.  
 
 ## Post CloudFormation deployment configuration
-1. Set route to Firewall Endpoints in Route Tables
-- NetworkInspection-Pub-A: 10.0.0.0/8 to firewall endpoint for that AZ-A
-- NetworkInspection-Pub-B: 10.0.0.0/8 to firewall endpoint for that AZ-B
-- NetworkInspection-Pub-C: 10.0.0.0/8 to firewall endpoint for that AZ-C
-- NetworkInspection-TgwAttach-A: 0.0.0.0/0 to firewall endpoint for that AZ-A
-- NetworkInspection-TgwAttach-B: 0.0.0.0/0 to firewall endpoint for that AZ-B
-- NetworkInspection-TgwAttach-C: 0.0.0.0/0 to firewall endpoint for that AZ-C
-
-2. Set up Transit Gateway Attachment in Spoke/Member VPCs to Network-Transit-Gateway
-
-3. Set route and propagation to Spoke/Member VPCs 
-- For Transit Gateway Route Table “Network-Main-Spoke” 
-    - add Association to Workload-App-TgwAttach
-- For Transit Gateway Route Table “Network-Main-Core” 
-    - add Propagation for Workload-App-TgwAttach
-
-4. Setup Firewall unmanaged rule group (Allow-Domains); set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
+Perform these configurations in central network account
+1. Setup Firewall unmanaged rule group (Allow-Domains); set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
 ```
 .amazonaws.com
 .amazon.com
 ```
 
-5. Create a new unmanaged stateful firewall rule group (Stateful, Strict Order, Suricata) "custom-suricata-rule-group"
+2. Create a new unmanaged stateful firewall rule group (Stateful, Strict Order, Suricata) "custom-suricata-rule-group"
 - Set Rule Group Format to Suricata
 - Set Capacity to 10000
 - Set IP set variables
@@ -217,10 +201,26 @@ Key Policy
 	- "ALLOW_PORT" (80, 443)
 - Paste in the Suricata string from "firewall-suricata-rules.txt"
 
-6. Add these to the firewall policy (central-network-StrictFirewallPolicy)
+3. Add these rules to the firewall policy (lz-central-network-StrictFirewallPolicy)
 - Managed rules: ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder
 - Unmanaged rules: Allow-Domains, custom-suricata-rule-group 
 - Priority sequence: Allow-Domains, ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder, custom-suricata-rule-group
+
+4. Set route to Firewall Endpoints in Route Tables
+- NetworkInspection-Pub-A: 10.0.0.0/8 to firewall endpoint for that AZ-A
+- NetworkInspection-Pub-B: 10.0.0.0/8 to firewall endpoint for that AZ-B
+- NetworkInspection-Pub-C: 10.0.0.0/8 to firewall endpoint for that AZ-C
+- NetworkInspection-TgwAttach-A: 0.0.0.0/0 to firewall endpoint for that AZ-A
+- NetworkInspection-TgwAttach-B: 0.0.0.0/0 to firewall endpoint for that AZ-B
+- NetworkInspection-TgwAttach-C: 0.0.0.0/0 to firewall endpoint for that AZ-C
+
+5. Set up Transit Gateway Attachment in Spoke/Member VPCs to Network-Transit-Gateway
+
+6. Set route and propagation to Spoke/Member VPCs 
+- For Transit Gateway Route Table “Network-Main-Spoke” 
+    - add Association to Workload-App-TgwAttach
+- For Transit Gateway Route Table “Network-Main-Core” 
+    - add Propagation for Workload-App-TgwAttach
 
 7. Configure the Transit Gateway routetable and propagation for the VPN connection that is attached to Transit Gateway
 
