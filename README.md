@@ -26,7 +26,7 @@ git push -uf origin main
 | Data Sovereignty | IAM Service Control Policy | 7.1.1, 7.2.1, 12.7.1 | lz-organization-scp-guardrails.json |
 | Data Protection | IAM Service Control Policy | 7.1.3 | lz-organization-scp-guardrails.json |
 | Data Protection | EC2 EBS Default Encryption | 12.1.1 | lz-new-account-ec2-baseline.yaml |
-| Data Protection | S3 Block Public Access | 12.1.1 | lz-s3-bpa.yaml |
+| Data Protection | S3 Block Public Access, enforce TLS for S3 | 12.1.1 | lz-s3-bpa.yaml, lz-organization-rcp-guardrails.json |
 | Network Security | VPC, Transit Gateway | 12.2.2 | lz-central-network.json |
 | Network Security | AWS Network Firewall with IPS (as Suricata rules) | 12.4.2 | lz-central-network.json |
 | Network Security | AWS Route53 DNS Resolver Firewall | 12.4.2 | PENDING |
