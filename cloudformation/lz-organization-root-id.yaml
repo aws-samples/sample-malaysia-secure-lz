@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudFormation template to deploy Lambda function for retrieving Organization and Root IDs'
+
+Resources:
+  # IAM Role for Lambda
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: OrganizationAndSSMAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - organizations:ListRoots
+                  - organizations:DescribeOrganization
+                Resource: '*'
+
+  GetOrganizationRootIdLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-get-function'
+      RetentionInDays: 30  # Adjust retention period as needed
+    DeletionPolicy: Delete  # Ensure the log group is deleted when the stack is deleted
+
+  GetOrganizationRootId:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-get-function'
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+          import urllib3
+          import logging
+
+          # Configure logging
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          # Initialize AWS client
+          organizations = boto3.client('organizations', region_name='us-east-1')
+
+          def send_cfn_response(event, context, response_status, response_data=None):
+              """Send response to CloudFormation"""
+              if 'ResponseURL' in event:
+                  response_body = {
+                      'Status': response_status,
+                      'PhysicalResourceId': context.log_stream_name,
+                      'StackId': event['StackId'],
+                      'RequestId': event['RequestId'],
+                      'LogicalResourceId': event['LogicalResourceId'],
+                      'Data': response_data or {}
+                  }
+
+                  http = urllib3.PoolManager()
+                  try:
+                      http.request(
+                          'PUT',
+                          event['ResponseURL'],
+                          body=json.dumps(response_body),
+                          headers={'Content-Type': ''}
+                      )
+                  except Exception as e:
+                      logger.error(f"Failed to send CFN response: {str(e)}")
+
+          def lambda_handler(event, context):
+              try:
+                  # Get Root ID
+                  roots = organizations.list_roots()
+                  root_id = roots['Roots'][0]['Id']
+                  logger.info(f"Retrieved Root ID: {root_id}")
+                  
+                  # Get Organization ID
+                  org = organizations.describe_organization()
+                  org_id = org['Organization']['Id']
+                  logger.info(f"Retrieved Organization ID: {org_id}")
+                  
+                  # Send success response to CloudFormation with IDs
+                  response_data = {
+                      'RootId': root_id,
+                      'OrganizationId': org_id
+                  }
+                  send_cfn_response(event, context, 'SUCCESS', response_data)
+                  
+                  return {
+                      'statusCode': 200,
+                      'body': json.dumps({
+                          'message': 'Organization IDs retrieved successfully',
+                          'rootId': root_id,
+                          'organizationId': org_id
+                      })
+                  }
+                  
+              except Exception as e:
+                  logger.error(f"Error: {str(e)}")
+                  
+                  # Send failure response to CloudFormation
+                  send_cfn_response(event, context, 'FAILED', {})
+                  
+                  return {
+                      'statusCode': 500,
+                      'body': json.dumps({
+                          'message': 'Error retrieving Organization IDs',
+                          'error': str(e)
+                      })
+                  }
+      Runtime: python3.13
+      Timeout: 60
+      MemorySize: 128
+      Handler: index.lambda_handler
+      Description: 'Lambda function that retrieves AWS Organizations Root ID and Organization ID. Automatically triggered during stack creation/update via Custom::LambdaTrigger and exports the IDs for use by other stacks.'
+      Tags:
+        - Key: Purpose
+          Value: Retrieve Organization IDs
+
+  # Custom Resource to trigger Lambda
+  TriggerLambda:
+    Type: Custom::LambdaTrigger
+    Properties:
+      ServiceToken: !GetAtt GetOrganizationRootId.Arn
+
+Outputs:
+  RootId:
+    Description: "Root ID from Organizations API"
+    Value: !GetAtt TriggerLambda.RootId
+    Export:
+      Name: !Sub '${AWS::StackName}-RootId'
+
+  OrganizationId:
+    Description: "Organization ID from Organizations API"
+    Value: !GetAtt TriggerLambda.OrganizationId
+    Export:
+      Name: !Sub '${AWS::StackName}-OrganizationId'
