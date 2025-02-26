@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Set AWS Organization Trusted Access for AWS native security services Security Hub, GuardDuty, Inspector, Firewall Manager, and IAM Access Analyzer at AWS Organization level."
+Description: "Set AWS Organization Trusted Access for AWS native security services Security Hub, GuardDuty, Inspector, Firewall Manager, Resource Access Manager, and IAM Access Analyzer at AWS Organization level."
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -90,10 +90,19 @@ Parameters:
     Default: "true"
     Description: "Enable automated Backup plans across multiple accounts and regions."
     Type: String
+  RAM:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable Resource Access Manager for organization."
+    Type: String
   LoggingLevel:
     AllowedValues: ["CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING"]
     Default: "INFO"
     Description: "The logging level for the Lambda function."
+    Type: String
+  OrganizationKmsIam:
+    Default: "lz-organization-kms-iam"
+    Description: "Name of CloudFormation Stack that created Organization CloudWatch IAM and KMS-CMK"
     Type: String
 
 Resources:
@@ -123,11 +132,14 @@ Resources:
                 Action:
                   - "organizations:EnableAwsServiceAccess"
                   - "organizations:DisableAwsServiceAccess"
+                  - "organizations:DescribeOrganization"
                   - "cloudformation:ActivateOrganizationsAccess"
                   - "cloudformation:DeactivateOrganizationsAccess"
                   - "cloudformation:DescribeOrganizationsAccess"
                   - "iam:GetRole"
+                  - "iam:CreateServiceLinkedRole"
                   - "sts:GetCallerIdentity"
+                  - "ram:EnableSharingWithAwsOrganization"
                 Resource: "*"
       RoleName: "organization-service-trusted-access-lambda"
 
@@ -147,6 +159,7 @@ Resources:
           logger.setLevel(os.environ['LOGGING_LEVEL'])
           organizations_client = boto3.client("organizations")
           cloudformation_client = boto3.client("cloudformation")
+          ram_client = boto3.client("ram")
           sts_client = boto3.client('sts')
           account_id = sts_client.get_caller_identity()["Account"]
           def lambda_handler(event, context):
@@ -195,6 +208,9 @@ Resources:
                           set_trusted_access('backup.amazonaws.com')                          
                       elif event['ResourceProperties']['Backup'] == 'false':
                           disable_trusted_access('backup.amazonaws.com')
+                      
+                      if event['ResourceProperties']['RAM'] == 'true':
+                          activate_organizations_access_ram()
 
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   elif event['RequestType'] == 'Delete':
@@ -230,7 +246,7 @@ Resources:
                   if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
                       logger.info("GuardDuty delegated security admin account was already deleted or did not exist")
                   else:
-                      logger.error(f"Error resetting AWS Organization Service {service_principal}Trusted Access configuration: {str(e)}")
+                      logger.error(f"Error resetting AWS Organization Service {service_principal} Trusted Access configuration: {str(e)}")
                       raise
           def activate_organizations_access_cloudformation():
               try:
@@ -245,6 +261,13 @@ Resources:
                   logger.info("CloudFormation Deactivate Organization Access configuration updated successfully")
               except ClientError as e:
                   logger.error(f"Error CloudFormation Deactivate Organization Access configuration: {str(e)}")
+                  raise
+          def activate_organizations_access_ram():
+              try:
+                  ram_client.enable_sharing_with_aws_organization()
+                  logger.info("Resource Access Manager Activate Organization Access configuration updated successfully")
+              except ClientError as e:
+                  logger.error(f"Error updating Resource Access Manager Activate Organization Access configuration: {str(e)}")
                   raise
       Description: "Enable or disable AWS Organization Service Trusted Access configuration at organization level."
       Environment:
@@ -266,6 +289,7 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
+      KmsKeyId: { "Fn::ImportValue" :  {"Fn::Sub": "${OrganizationKmsIam}-CloudWatchLogsKeyArn" } }
 
   OrganizationServiceTrustedAccess:
     Type: "Custom::OrganizationServiceTrustedAccess"
@@ -279,6 +303,7 @@ Resources:
       IAM: !Ref IAM
       CloudFormation: !Ref CloudFormation
       Backup: !Ref Backup
+      RAM: !Ref RAM
       ServiceToken: !GetAtt OrganizationServiceTrustedAccessLambda.Arn
 
 Outputs:
