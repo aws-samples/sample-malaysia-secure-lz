@@ -304,6 +304,11 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 - Review the "Events" tab, and click on "View root cause" to identify the specific action that caused the failed deployment.
 - Review the Lambda function's CloudWatch log group events to determine what may have caused the issues. Go to "Resources" tab and select the LambdaLogGroup to review the log stream events and to identify the potential root causes.
 
+2. CloudFormation rollback failure
+- Go to AWS CloudFormation console and select the STack with the identified issues. 
+- Force delete the StackSet and check the box to delete resources.
+- Go to resources and check that all the previously created resources (e.g. IAM Role, Lamdba Function, CloudWatch Log Group) are moved. Click on each remaining resource, and delete the remaining resource manually. 
+
 ## Feature Backlog
 1. Enable AWS Inspector for all accounts.
 2. Enable AWS Firewall Manager and policies for all accounts.
