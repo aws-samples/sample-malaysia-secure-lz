@@ -12,12 +12,12 @@ Metadata:
           default: "EC2 Data Protection and Security Configuration"
         Parameters:
           - EbsDefaultEncryption
-          - EbsDefaultEncryptionKeyAliasName
+          - EbsDefaultEncryptionKeyAlias
           - EC2IMDSv2Mandatory
     ParameterLabels:
       EbsDefaultEncryption:
         default: "EC2 EBS Default Encryption"
-      EbsDefaultEncryptionKeyAliasName:
+      EbsDefaultEncryptionKeyAlias:
         default: "EC2 EBS Default Encryption Key Alias"
       EC2IMDSv2Mandatory:
         default: "EC2 IMDSv2 Mandatory"
@@ -73,7 +73,7 @@ Parameters:
     Type: Number
     Default: 90
     MinValue: 1
-    MaxValue: 1095
+    MaxValue: 365
     Description: "Number of days before the password expires (between 1 and 1095 days)"
   PasswordPolicyRequireUppercase:
     Type: String
@@ -95,6 +95,12 @@ Parameters:
     Default: "true"
     AllowedValues: ["true", "false"]
     Description: "Require at least one non-alphanumeric character in the password"
+  PasswordPolicyPreventReuse:
+    Type: Number
+    Default: 24
+    MinValue: 1
+    MaxValue: 24
+    Description: "Number of previous passwords that users are prevented from reusing (between 1 and 24)"
 
 Resources:
   EbsDefaultEncryptionKey:
@@ -341,7 +347,8 @@ Resources:
                           RequireNumbers=event['ResourceProperties']['RequireNumbers'] == 'true',
                           RequireUppercaseCharacters=event['ResourceProperties']['RequireUppercaseCharacters'] == 'true',
                           RequireLowercaseCharacters=event['ResourceProperties']['RequireLowercaseCharacters'] == 'true',
-                          MaxPasswordAge=int(event['ResourceProperties']['MaxPasswordAge'])
+                          MaxPasswordAge=int(event['ResourceProperties']['MaxPasswordAge']),
+                          PasswordReusePrevention=int(event['ResourceProperties']['PasswordReusePrevention'])
                       )
                       logger.info("Successfully updated account password policy")
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
@@ -363,6 +370,7 @@ Resources:
       RequireUppercaseCharacters: !Ref PasswordPolicyRequireUppercase
       RequireLowercaseCharacters: !Ref PasswordPolicyRequireLowercase
       MaxPasswordAge: !Ref PasswordPolicyMaxAge
+      PasswordReusePrevention: !Ref PasswordPolicyPreventReuse
 
 Outputs:
   EbsDefaultEncryptionKMSKeyId:
