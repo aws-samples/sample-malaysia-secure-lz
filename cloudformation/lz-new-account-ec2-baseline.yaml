@@ -65,7 +65,7 @@ Parameters:
     Type: String
   PasswordPolicyMinLength:
     Type: Number
-    Default: 20
+    Default: 14
     MinValue: 6
     MaxValue: 128
     Description: "Minimum length of the password (between 6 and 128 characters)"
