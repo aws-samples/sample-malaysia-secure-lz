@@ -63,6 +63,44 @@ Parameters:
     Default: "INFO"
     Description: "The logging level for the Lambda function."
     Type: String
+  PasswordPolicyMinLength:
+    Type: Number
+    Default: 14
+    MinValue: 6
+    MaxValue: 128
+    Description: "Minimum length of the password (between 6 and 128 characters)"
+  PasswordPolicyMaxAge:
+    Type: Number
+    Default: 90
+    MinValue: 1
+    MaxValue: 365
+    Description: "Number of days before the password expires (between 1 and 1095 days)"
+  PasswordPolicyRequireUppercase:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: "Require at least one uppercase letter in the password"
+  PasswordPolicyRequireLowercase:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: "Require at least one lowercase letter in the password"
+  PasswordPolicyRequireNumbers:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: "Require at least one number in the password"
+  PasswordPolicyRequireSymbols:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: "Require at least one non-alphanumeric character in the password"
+  PasswordPolicyPreventReuse:
+    Type: Number
+    Default: 24
+    MinValue: 1
+    MaxValue: 24
+    Description: "Number of previous passwords that users are prevented from reusing (between 1 and 24)"
 
 Resources:
   EbsDefaultEncryptionKey:
@@ -138,7 +176,7 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: "sts:AssumeRole"
-      Description: "Used by the Lambda to update the EC2 Data Protection and Security configuration."
+      Description: "Used by the Lambda to update the EC2 Data Protection and Security configuration and IAM password policy."
       Policies:
         - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
@@ -162,6 +200,7 @@ Resources:
                   - "ec2:DisableSnapshotBlockPublicAccess"
                   - "ec2:ModifyInstanceMetadataDefaults"
                   - "sts:GetCallerIdentity"
+                  - "iam:UpdateAccountPasswordPolicy"
                 Resource: "*"
       RoleName: "ec2-data-protection-security-update-lambda"
 
@@ -269,6 +308,69 @@ Resources:
     Type: "AWS::EC2::SnapshotBlockPublicAccess"
     Properties:
       State: !Ref BlockPublicAccessEBSSnapshots
+
+  SetPasswordPolicyLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/SetPasswordPolicyLambda"
+      RetentionInDays: 14
+
+  SetPasswordPolicyLambda:
+    Type: AWS::Lambda::Function
+    DependsOn: SetPasswordPolicyLambdaLogGroup
+    Properties:
+      Runtime: python3.13
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 60
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import logging
+
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          def lambda_handler(event, context):
+              logger.info(f"Received event: {event}")
+              iam = boto3.client('iam')
+              
+              try:
+                  if event['RequestType'] in ['Create', 'Update']:
+                      logger.info("Updating account password policy")
+                      iam.update_account_password_policy(
+                          MinimumPasswordLength=int(event['ResourceProperties']['MinimumPasswordLength']),
+                          RequireSymbols=event['ResourceProperties']['RequireSymbols'] == 'true',
+                          RequireNumbers=event['ResourceProperties']['RequireNumbers'] == 'true',
+                          RequireUppercaseCharacters=event['ResourceProperties']['RequireUppercaseCharacters'] == 'true',
+                          RequireLowercaseCharacters=event['ResourceProperties']['RequireLowercaseCharacters'] == 'true',
+                          MaxPasswordAge=int(event['ResourceProperties']['MaxPasswordAge']),
+                          PasswordReusePrevention=int(event['ResourceProperties']['PasswordReusePrevention'])
+                      )
+                      logger.info("Successfully updated account password policy")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                  elif event['RequestType'] == 'Delete':
+                      logger.info("Delete request received. No action taken on password policy.")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+              except Exception as e:
+                  logger.error(f"Error updating password policy: {str(e)}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
+
+  CustomPasswordPolicy:
+    Type: Custom::SetPasswordPolicy
+    DependsOn: SetPasswordPolicyLambda
+    Properties:
+      ServiceToken: !GetAtt SetPasswordPolicyLambda.Arn
+      MinimumPasswordLength: !Ref PasswordPolicyMinLength
+      RequireSymbols: !Ref PasswordPolicyRequireSymbols
+      RequireNumbers: !Ref PasswordPolicyRequireNumbers
+      RequireUppercaseCharacters: !Ref PasswordPolicyRequireUppercase
+      RequireLowercaseCharacters: !Ref PasswordPolicyRequireLowercase
+      MaxPasswordAge: !Ref PasswordPolicyMaxAge
+      PasswordReusePrevention: !Ref PasswordPolicyPreventReuse
 
 Outputs:
   EbsDefaultEncryptionKMSKeyId:
