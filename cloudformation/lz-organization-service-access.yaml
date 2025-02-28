@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Set AWS Organization Trusted Access for AWS native security services Security Hub, GuardDuty, Inspector, Firewall Manager, Resource Access Manager, and IAM Access Analyzer at AWS Organization level."
+Description: "Enable (only) AWS Organization Trusted Access for AWS native security services Security Hub, GuardDuty, Inspector, Firewall Manager, Resource Access Manager, and IAM Access Analyzer at AWS Organization level. To disable the specific service, use AWS Organization Console."
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -131,10 +131,8 @@ Resources:
               - Effect: Allow
                 Action:
                   - "organizations:EnableAwsServiceAccess"
-                  - "organizations:DisableAwsServiceAccess"
                   - "organizations:DescribeOrganization"
                   - "cloudformation:ActivateOrganizationsAccess"
-                  - "cloudformation:DeactivateOrganizationsAccess"
                   - "cloudformation:DescribeOrganizationsAccess"
                   - "iam:GetRole"
                   - "iam:CreateServiceLinkedRole"
@@ -170,24 +168,15 @@ Resources:
                       if event['ResourceProperties']['GuardDuty'] == 'true':
                           set_trusted_access('guardduty.amazonaws.com')
                           set_trusted_access('malware-protection.guardduty.amazonaws.com')
-                      elif event['ResourceProperties']['GuardDuty'] == 'false':
-                          disable_trusted_access('guardduty.amazonaws.com')
-                          disable_trusted_access('malware-protection.guardduty.amazonaws.com')
                       
                       if event['ResourceProperties']['SecurityHub'] == 'true':
                           set_trusted_access('securityhub.amazonaws.com')
-                      elif event['ResourceProperties']['SecurityHub'] == 'false':
-                          disable_trusted_access('securityhub.amazonaws.com')
 
                       if event['ResourceProperties']['Detective'] == 'true':
                           set_trusted_access('detective.amazonaws.com')
-                      elif event['ResourceProperties']['Detective'] == 'false':
-                          disable_trusted_access('detective.amazonaws.com')
 
                       if event['ResourceProperties']['Inspector'] == 'true':
                           set_trusted_access('inspector2.amazonaws.com')
-                      elif event['ResourceProperties']['Inspector'] == 'false':
-                          disable_trusted_access('inspector2.amazonaws.com')
 
                       if event['ResourceProperties']['FirewallManager'] == 'true':
                           set_trusted_access('fms.amazonaws.com')                          
@@ -196,34 +185,19 @@ Resources:
                       
                       if event['ResourceProperties']['IAMAccessAnalyzer'] == 'true':
                           set_trusted_access('access-analyzer.amazonaws.com')
-                      elif event['ResourceProperties']['IAMAccessAnalyzer'] == 'false':
-                          disable_trusted_access('access-analyzer.amazonaws.com')
 
                       if event['ResourceProperties']['IAM'] == 'true':
                           set_trusted_access('iam.amazonaws.com')
-                      elif event['ResourceProperties']['IAM'] == 'false':
-                          disable_trusted_access('iam.amazonaws.com')
 
                       if event['ResourceProperties']['Backup'] == 'true':
-                          set_trusted_access('backup.amazonaws.com')                          
-                      elif event['ResourceProperties']['Backup'] == 'false':
-                          disable_trusted_access('backup.amazonaws.com')
+                          set_trusted_access('backup.amazonaws.com') 
                       
                       if event['ResourceProperties']['RAM'] == 'true':
                           activate_organizations_access_ram()
 
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   elif event['RequestType'] == 'Delete':
-                      disable_trusted_access('guardduty.amazonaws.com')
-                      disable_trusted_access('malware-protection.guardduty.amazonaws.com')
-                      disable_trusted_access('securityhub.amazonaws.com')
-                      disable_trusted_access('detective.amazonaws.com')
-                      disable_trusted_access('inspector2.amazonaws.com')
-                      disable_trusted_access('fms.amazonaws.com')
-                      disable_trusted_access('access-analyzer.amazonaws.com')
-                      disable_trusted_access('iam.amazonaws.com')
-                      disable_trusted_access('backup.amazonaws.com')
-
+                      logger.info(f"Go to AWS Organization console to manually disable required services.")
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   else:
                       logger.error(f"Invalid request type: {event['RequestType']}")
@@ -238,29 +212,12 @@ Resources:
               except ClientError as e:
                   logger.error(f"Error updating AWS Organization Service {service_principal} Trusted Access configuration: {str(e)}")
                   raise
-          def disable_trusted_access(service_principal):
-              try:
-                  organizations_client.disable_aws_service_access(ServicePrincipal = service_principal)
-                  logger.info(f"AWS Organization Service {service_principal} configuration reset successfully")
-              except ClientError as e:
-                  if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
-                      logger.info("GuardDuty delegated security admin account was already deleted or did not exist")
-                  else:
-                      logger.error(f"Error resetting AWS Organization Service {service_principal} Trusted Access configuration: {str(e)}")
-                      raise
           def activate_organizations_access_cloudformation():
               try:
                   cloudformation_client.activate_organizations_access()
                   logger.info("CloudFormation Activate Organization Access configuration updated successfully")
               except ClientError as e:
                   logger.error(f"Error updating CloudFormation Activate Organization Access configuration: {str(e)}")
-                  raise
-          def deactivate_organizations_access_cloudformation():
-              try:
-                  cloudformation_client.deactivate_organizations_access()
-                  logger.info("CloudFormation Deactivate Organization Access configuration updated successfully")
-              except ClientError as e:
-                  logger.error(f"Error CloudFormation Deactivate Organization Access configuration: {str(e)}")
                   raise
           def activate_organizations_access_ram():
               try:
