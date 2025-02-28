@@ -53,8 +53,7 @@
                         "Condition": {
                             "StringNotLike": {
                                 "aws:PrincipalArn": [
-                                    "arn:aws:iam::*:role/AWSControlTowerExecution",
-                                    "arn:${PARTITION}:iam::*:role/${ACCELERATOR_PREFIX}-*"
+                                    "arn:aws:iam::*:role/AWSControlTowerExecution"
                                 ]
                             }
                         }
@@ -177,7 +176,8 @@
                         "ebs:*",
                         "rds:*",
                         "elasticfilesystem:*",
-                        "es:*"
+                        "es:*",
+                        "storagegateway:*"
                         ],
                         "Resource": "*",
                         "Effect": "Deny",
