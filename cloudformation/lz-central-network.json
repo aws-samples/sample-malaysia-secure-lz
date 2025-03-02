@@ -2580,6 +2580,64 @@
                 ]
             }
         },
+        "NetworkEndpointsECRDKRInterfaceEndpoint": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "VpcEndpointType": "Interface",
+                "ServiceName": {
+                    "Fn::Sub": "com.amazonaws.${AWS::Region}.ecr.dkr"
+                },
+                "VpcId": {
+                    "Ref": "NetworkEndpointsVPC"
+                },
+                "PrivateDnsEnabled": true,
+                "SubnetIds": [
+                    {
+                        "Ref": "NetworkEndpointsA"
+                    },
+                    {
+                        "Ref": "NetworkEndpointsB"
+                    },
+                    {
+                        "Ref": "NetworkEndpointsC"
+                    }
+                ],
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "VPCInterfaceSecurityGroup"
+                    }
+                ]
+            }
+        },
+        "NetworkEndpointsECRAPIInterfaceEndpoint": {
+            "Type": "AWS::EC2::VPCEndpoint",
+            "Properties": {
+                "VpcEndpointType": "Interface",
+                "ServiceName": {
+                    "Fn::Sub": "com.amazonaws.${AWS::Region}.ecr.api"
+                },
+                "VpcId": {
+                    "Ref": "NetworkEndpointsVPC"
+                },
+                "PrivateDnsEnabled": true,
+                "SubnetIds": [
+                    {
+                        "Ref": "NetworkEndpointsA"
+                    },
+                    {
+                        "Ref": "NetworkEndpointsB"
+                    },
+                    {
+                        "Ref": "NetworkEndpointsC"
+                    }
+                ],
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "VPCInterfaceSecurityGroup"
+                    }
+                ]
+            }
+        },
         "VPCInterfaceSecurityGroup": {
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
