@@ -18,7 +18,7 @@
         },
         "ControlTowerBackupKeyAliasName": {
             "Type": "String",
-            "Default": "alias/controltower-backup-key",
+            "Default": "alias/control-tower-backup-key",
             "Description": "Alias name for the Control Tower Backup KMS key"
         },
         "EnableKeyRotation": {
@@ -306,6 +306,9 @@
             "Description": "ID of the CloudWatch Logs KMS key",
             "Value": {
                 "Ref": "CloudWatchLogsKey"
+            },
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-CloudWatchLogsKeyId"}
             }
         },
         "CloudWatchLogsKeyArn": {
@@ -315,12 +318,18 @@
                     "CloudWatchLogsKey",
                     "Arn"
                 ]
+            },
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-CloudWatchLogsKeyArn"}
             }
         },
         "ControlTowerBackupKeyId": {
             "Description": "ID of the Control Tower Backup KMS key",
             "Value": {
                 "Ref": "ControlTowerBackupKey"
+            },
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-ControlTowerBackupKeyId"}
             }
         },
         "ControlTowerBackupKeyArn": {
@@ -330,6 +339,9 @@
                     "ControlTowerBackupKey",
                     "Arn"
                 ]
+            },
+            "Export": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-ControlTowerBackupKeyArn"}
             }
         },
         "BackupRoleArn": {
