@@ -360,6 +360,8 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
+      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      LogGroupName: "/aws/lambda/ec2-data-protection-security-update"
 
   EC2DataProtectionSecurity:
     Type: "Custom::EC2DataProtectionSecurity"
@@ -376,11 +378,12 @@ Resources:
 
   SetPasswordPolicyLambdaLogGroup:
     Type: AWS::Logs::LogGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
-      LogGroupName: !Sub "/aws/lambda/SetPasswordPolicyLambda"
+      LogGroupName: "/aws/lambda/SetPasswordPolicyLambda"
       RetentionInDays: 14
+      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
   SetPasswordPolicyLambda:
     Type: AWS::Lambda::Function
