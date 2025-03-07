@@ -29,6 +29,9 @@ Parameters:
     Description: "AWS Account ID to be designated as Firewall Manager administrator (12-digit)"
     AllowedPattern: "^[0-9]{12}$"
     ConstraintDescription: "Must be a 12-digit numeric string"
+  KeyAdministratorArn:
+    Type: String
+    Description: "ARN of IAM user/role that will administer the KMS keys"
   FirewallManager:
     AllowedValues: ["true", "false"]
     Default: "true"
@@ -38,10 +41,6 @@ Parameters:
     AllowedValues: ["CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING"]
     Default: "INFO"
     Description: "The logging level for the Lambda function."
-    Type: String
-  OrganizationKmsIam:
-    Default: "lz-organization-kms-iam"
-    Description: "Name of CloudFormation Stack that created Organization CloudWatch IAM and KMS-CMK"
     Type: String
 
 Resources:
@@ -120,14 +119,11 @@ Resources:
               try:
                   if event['RequestType'] in ['Create', 'Update']:
                       if event['ResourceProperties']['FirewallManager'] == 'true':
-                          set_service_organization_admin(delegated_admin_account_id, 'fms.amazonaws.com')
                           set_firewallmanager_organization_admin(delegated_admin_account_id)
                       elif event['ResourceProperties']['FirewallManager'] == 'false':
-                          reset_service_organization_admin(delegated_admin_account_id, 'fms.amazonaws.com')
                           reset_firewallmanager_organization_admin(delegated_admin_account_id)
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   elif event['RequestType'] == 'Delete':
-                      reset_firewallmanager_organization_admin(delegated_admin_account_id)
                       reset_service_organization_admin(delegated_admin_account_id, 'fms.amazonaws.com')                      
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   else:
@@ -159,22 +155,6 @@ Resources:
           def set_firewallmanager_organization_admin(account_id):
               try:
                   fms_client.associate_admin_account(AdminAccount=account_id)
-                  fms_client.put_admin_account(AdminAccount=account_id, 
-                                                AdminScope={
-                                                  'AccountScope': {
-                                                      'AllAccountsEnabled': True
-                                                  },
-                                                  'OrganizationalUnitScope'={
-                                                    'AllOrganizationalUnitsEnabled': True
-                                                  },
-                                                  'RegionScope'={
-                                                    'Regions': ['us-east-1', 'ap-southeast-5']
-                                                  },
-                                                  'PolicyTypeScope'={
-                                                    'AllPolicyTypesEnabled': True
-                                                  }
-                                                }                                                
-                                                )
                   logger.info("Firewall Manager delegated security admin account updated successfully")
               except ClientError as e:
                   if 'account is already enabled' in e.response['Error']['Message'].lower() :
@@ -206,13 +186,69 @@ Resources:
       Runtime: python3.13
       Timeout: 60
 
+  LogGroupKey:
+    Type: "AWS::KMS::Key"
+    Properties: 
+      Description: "Firewall Manager Admin Delegation Lambda LogGroup Key"
+      EnableKeyRotation: true
+      KeyPolicy: 
+        Version: "2012-10-17"
+        Id: "key-default-1"
+        Statement: 
+          - 
+            Sid: "Allow Key Administration"
+            Effect: "Allow"
+            Principal: 
+              AWS: !Ref "KeyAdministratorArn"
+            Action: 
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+              - "kms:GenerateDataKey"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+            Resource: "*"
+          - 
+            Sid: "Allow CloudWatch Logs Service"
+            Effect: "Allow"
+            Principal: 
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Action: 
+              - "kms:Decrypt*"
+              - "kms:Encrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:ReEncrypt*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - 
+            Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal: 
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 
+              - "kms:*"
+            Resource: "*"
+
   FirewallManagerAdminDelegationLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
-      KmsKeyId: { "Fn::ImportValue" :  {"Fn::Sub": "${OrganizationKmsIam}-CloudWatchLogsKeyArn" } }
+      KmsKeyId: !GetAtt LogGroupKey.Arn
+      LogGroupName: "/aws/lambda/firewall-manager-admin-delegation-update-log"
 
   FirewallManagerAdminDelegation:
     Type: "Custom::FirewallManagerAdminDelegation"
