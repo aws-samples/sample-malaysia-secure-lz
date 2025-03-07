@@ -47,22 +47,21 @@ Feature Components
 ## Prerequisites:
 Complete these validation checks before starting the deployment of the SLZ. 
 1. AWS management account has been created. 
-2. Create a Shared Services that is used for backup administration, IAM Identity Center administration delegation and other common cloud operation actions.
-3. Create a Central Backup account that is used for the central storage of backups.
-2. AWS environment does not have any running workloads and services. 
-3. All deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
-4. Prepare separate emails for log-archive and audit accounts that will be created when Control Tower is initiated.
-5. Create sharedservices account and backup-vault account that will be referenced during Control Tower Backup setup.
-6. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
-7. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
-8. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
-9. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia SLZ configuration pulled from (AWS source repo). 
+2. Prepare an AWS Organization (without AWS Control Tower) in management account. Go to AWS Organization, and "Create an organization". Take note of the Organization ID (o-xxx), that will be used in subsequent installation steps.
+3. Create a "Shared Services" account that is used for backup administration, IAM Identity Center administration delegation and other common cloud operation actions. This will be required during Control Tower Backup setup.
+4. Create a "Central Backup" account that is used for the central storage of backups. This will be required during Control Tower Backup setup.
+5. AWS environment does not have any running workloads and services. 
+6. All deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
+7. Prepare separate emails for log-archive and audit accounts that will be created when Control Tower is initiated.
+8. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
+9. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
+10. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
+11. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia SLZ configuration pulled from (AWS source repo). 
 
 
 ## Installation Steps
 1. *HOME-REGION* is Malaysia (ap-southeast-5).
-2. Prepare an AWS Organization (without AWS Control Tower) in management account. Go to AWS Organization, and "Create an organization". Copy down the Organization ID, that will be used in subsequent steps.
-3. Create KMS Customer Managed Key (Symmetric, for Encrypt and Decrypt), KMS-CMK, for AWS Control Tower. This will be referenced during the setup of the Control Tower service in Step 7.
+2. Create KMS Customer Managed Key (Symmetric, for Encrypt and Decrypt), KMS-CMK, for AWS Control Tower. This will be referenced during the setup of the Control Tower service in Step 7.
 Key Policy
 ```
 {
