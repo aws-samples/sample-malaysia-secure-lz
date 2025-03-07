@@ -53,6 +53,10 @@ Parameters:
     Default: "True"
     Description: "S3 will ignore public and cross-account access for buckets or access points with policies that grant public access to buckets and objects."
     Type: String
+  NewAccountBaselineStack:
+    Default: "lz-account-baseline"
+    Description: "Name of CloudFormation Stack that creates new account baseline"
+    Type: String
 
 Resources:
   LambdaExecutionRole:
@@ -163,6 +167,7 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
+      KmsKeyId: { "Fn::ImportValue" :  {"Fn::Sub": "${NewAccountBaselineStack}-CloudWatchEncryptionKeyArn" } }
 
   S3PublicAccessBlock:
     Type: "Custom::S3PublicAccessBlock"
