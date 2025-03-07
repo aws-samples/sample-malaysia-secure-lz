@@ -31,7 +31,7 @@ Parameters:
   GuardDutyDetectorId:
     Type: String
     Description: "GuardDuty Detector ID in home region of delegated security administrator account"
-  MalwareProtection:
+  MalwareProtectionEC2:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable GuardDuty Malware Protection for EC2."
@@ -46,6 +46,28 @@ Parameters:
     Default: "true"
     Description: "Enable Runtime Monitoring for EKS and EC2."
     Type: String
+  EKSAuditLog:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable GuardDuty EKS Audit Log Monitoring."
+    Type: String
+  RDSProtection:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable GuardDuty RDS Protection."
+    Type: String
+  LambdaProtection:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable GuardDuty Lambda Network Protection."
+    Type: String
+  EncryptionKeyAdministratorArn:
+    Type: String
+    Description: ARN of IAM user/role that will administer the KMS key
+  GuardDutyCloudWatchEncryptionKeyAliasName:
+    Type: String
+    Default: alias/guardduty-log-group-encryption
+    Description: Alias name for the KMS key (prefix with 'alias/', cannot use 'alias/aws' which is reserved for AWS managed keys)
   LoggingLevel:
     AllowedValues: ["CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING"]
     Default: "INFO"
@@ -53,6 +75,67 @@ Parameters:
     Type: String
 
 Resources:
+  GuardDutyCloudWatchEncryptionKey:
+    Type: "AWS::KMS::Key"
+    Properties: 
+      Description: "GuardDuty CloudWatch LogGroup Key"
+      EnableKeyRotation: true
+      KeyPolicy: 
+        Version: "2012-10-17"
+        Id: "key-default-1"
+        Statement: 
+          - 
+            Sid: "Allow Key Administration"
+            Effect: "Allow"
+            Principal: 
+              AWS: !Ref EncryptionKeyAdministratorArn
+            Action: 
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+              - "kms:GenerateDataKey"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+            Resource: "*"
+          - 
+            Sid: "Allow CloudWatch Logs Service"
+            Effect: "Allow"
+            Principal: 
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Action: 
+              - "kms:Decrypt*"
+              - "kms:Encrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:ReEncrypt*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - 
+            Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal: 
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 
+              - "kms:*"
+            Resource: "*"
+
+  GuardDutyCloudWatchEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref GuardDutyCloudWatchEncryptionKeyAliasName
+      TargetKeyId: !Ref GuardDutyCloudWatchEncryptionKey
+
   LambdaExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -110,22 +193,45 @@ Resources:
               logger.info(f"Received event: {event}")
               physical_id = event['LogicalResourceId']
               detectorId = event['ResourceProperties']['GuardDutyDetectorId']
+              if event['ResourceProperties']['MalwareProtectionEC2'] == 'true':
+                malwareprotectionec2 = 'ALL'
+              else:
+                malwareprotectionec2 = 'NONE'
+              if event['ResourceProperties']['S3Protection'] == 'true':
+                s3protection = 'ALL'
+              else:
+                s3protection = 'NONE'
+              if event['ResourceProperties']['RuntimeMonitoring'] == 'true':
+                runtimemonitoring = 'ALL'
+              else:
+                runtimemonitoring = 'NONE'
+              if event['ResourceProperties']['EKSAuditLog'] == 'true':
+                eksauditlog = 'ALL'
+              else:
+                eksauditlog = 'NONE'
+              if event['ResourceProperties']['RDSProtection'] == 'true':
+                rdsprotection = 'ALL'
+              else:
+                rdsprotection = 'NONE'
+              if event['ResourceProperties']['LambdaProtection'] == 'true':
+                lambdaprotection = 'ALL'
+              else:
+                lambdaprotection = 'NONE'
               try:
                   if event['RequestType'] in ['Create', 'Update']:
                       guardduty_client.update_organization_configuration(
                           DetectorId=detectorId,
                           AutoEnableOrganizationMembers='ALL',
                           Features=[
-                              {'Name': 'S3_DATA_EVENTS', 'AutoEnable': 'ALL'},
-                              {'Name': 'EKS_AUDIT_LOGS', 'AutoEnable': 'ALL'},
-                              {'Name': 'EBS_MALWARE_PROTECTION', 'AutoEnable': 'ALL'},
-                              {'Name': 'RDS_LOGIN_EVENTS', 'AutoEnable': 'ALL'},
-                              {'Name': 'LAMBDA_NETWORK_LOGS', 'AutoEnable': 'ALL'},
-                              {'Name': 'RUNTIME_MONITORING', 'AutoEnable': 'ALL'},
+                              {'Name': 'S3_DATA_EVENTS', 'AutoEnable': s3protection},
+                              {'Name': 'EKS_AUDIT_LOGS', 'AutoEnable': eksauditlog},
+                              {'Name': 'EBS_MALWARE_PROTECTION', 'AutoEnable': malwareprotectionec2},
+                              {'Name': 'RDS_LOGIN_EVENTS', 'AutoEnable': rdsprotection},
+                              {'Name': 'LAMBDA_NETWORK_LOGS', 'AutoEnable': lambdaprotection},
+                              {'Name': 'RUNTIME_MONITORING', 'AutoEnable': runtimemonitoring},
                           ]                          
                       )
                       logger.info("GuardDuty configuration updated successfully")
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   elif event['RequestType'] == 'Delete':
                       guardduty_client.update_organization_configuration(
                           DetectorId=detectorId,
@@ -140,13 +246,12 @@ Resources:
                           ]                          
                       )
                       logger.info("GuardDuty configuration reset successfully")
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
-                  else:
-                      logger.error(f"Invalid request type: {event['RequestType']}")
-                      cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
-              except Exception as e:
-                  logger.error(f"Error: {str(e)}")
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)            
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
+              except ClientError as e:
+                  logger.error(f"Error: {e}")
+                  reason = str(e)
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {'Reason': reason}, physical_id)
+                  raise           
       Description: "Updates and deletes the AWS GuardDuty configuration at organization level in a region."
       Environment:
         Variables:
@@ -167,14 +272,18 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
+      KMSKeyId: !GetAtt GuardDutyCloudWatchEncryptionKey.Arn
 
   GuardDutyConfiguration:
     Type: "Custom::GuardDutyConfiguration"
     Properties:
       GuardDutyDetectorId: !Ref GuardDutyDetectorId
-      MalwareProtection: !Ref MalwareProtection
+      MalwareProtectionEC2: !Ref MalwareProtectionEC2
       S3Protection: !Ref S3Protection
       RuntimeMonitoring: !Ref RuntimeMonitoring
+      EKSAuditLog: !Ref EKSAuditLog
+      RDSProtection: !Ref RDSProtection
+      LambdaProtection: !Ref LambdaProtection
       ServiceToken: !GetAtt GuardDutyConfigurationLambda.Arn
 
 Outputs:
