@@ -61,7 +61,12 @@ Complete these validation checks before starting the deployment of the SLZ.
 
 ## Installation Steps
 1. *HOME-REGION* is Malaysia (ap-southeast-5).
-2. Create KMS Customer Managed Key (Symmetric, for Encrypt and Decrypt), KMS-CMK, for AWS Control Tower. This will be referenced during the setup of the Control Tower service in Step 7.
+2. Create KMS Customer Managed Key (Symmetric, for Encrypt and Decrypt, single-region), KMS-CMK, for AWS Control Tower. This will be referenced during the setup of the Control Tower service in Step 7.
+    - Key Type: Symmetric Key
+    - Key Usage: Encrypt and Decrypt.
+    - Regionality: Single-Region
+    - Alias: "control-tower-key"
+    - Description: "KMS Key used by Control Tower service"
 Key Policy
 ```
 {
@@ -127,6 +132,9 @@ Key Policy
     - CloudFormation script: "lz-organization-service-access.yaml"
     - StackName: "lz-organization-service-access"
 6. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
+    - Additional region for governance: us-east-1
+    - Foundational OU: Security 
+    - Additional OU: Opt out of creating OU
     - Create a log-archive account and an audit account as part of Control Tower implementation. 
     - Specify the KMS key id for Control Tower encryption
     - Specify Region Deny, to only govern these regions (us-east-1, and ap-southeast-5)
@@ -134,7 +142,8 @@ Key Policy
     - Set Log configuration for S3 to 1 year for both S3 retention and S3 access logging
     - Enable IAM Identity Center (IDC) in us-east-1 (pending availability in Malaysia region)
     - Enable AWS Backup for whole of organization. Specify the new Shared Services (for backup administration) and central backup accounts. These accounts should not be enrolled under AWS Control Tower at the start.
-    - Don't create another OU
+        - Specify the KMS key id for Control Tower Backup encryption
+    
 7. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-delegate-native-security-services.yaml"
@@ -307,6 +316,10 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 - Go to AWS CloudFormation console and select the STack with the identified issues. 
 - Force delete the StackSet and check the box to delete resources.
 - Go to resources and check that all the previously created resources (e.g. IAM Role, Lamdba Function, CloudWatch Log Group) are moved. Click on each remaining resource, and delete the remaining resource manually. 
+
+3. Control Tower Backup enrollment failure
+- Error description "Insufficient privileges to create a backup vault. Creating a backup vault requires backup-storage and KMS permissions."
+    - Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
 
 ## Feature Backlog
 1. Enable AWS Inspector for all accounts.
