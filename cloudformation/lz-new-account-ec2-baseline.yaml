@@ -41,6 +41,10 @@ Parameters:
     Type: String
     Default: KMS key for EBS volume default encryption
     Description: Description for the KMS key
+  CloudWatchEncryptionKeyAliasName:
+    Type: String
+    Default: alias/account-baseline-log-group-encryption
+    Description: Alias name for the KMS key (prefix with 'alias/', cannot use 'alias/aws' which is reserved for AWS managed keys)
   EnableKeyRotation:
     Type: String
     Default: 'true'
@@ -165,6 +169,67 @@ Resources:
     Properties:
       AliasName: !Ref EbsDefaultEncryptionKeyAliasName
       TargetKeyId: !Ref EbsDefaultEncryptionKey
+
+  CloudWatchEncryptionKey:
+    Type: "AWS::KMS::Key"
+    Properties: 
+      Description: "Account Baseline CloudWatch LogGroup Key"
+      EnableKeyRotation: true
+      KeyPolicy: 
+        Version: "2012-10-17"
+        Id: "key-default-1"
+        Statement: 
+          - 
+            Sid: "Allow Key Administration"
+            Effect: "Allow"
+            Principal: 
+              AWS: !Ref EbsDefaultEncryptionKeyAdministratorArn
+            Action: 
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+              - "kms:GenerateDataKey"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+            Resource: "*"
+          - 
+            Sid: "Allow CloudWatch Logs Service"
+            Effect: "Allow"
+            Principal: 
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Action: 
+              - "kms:Decrypt*"
+              - "kms:Encrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:ReEncrypt*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - 
+            Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal: 
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 
+              - "kms:*"
+            Resource: "*"
+
+  CloudWatchEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref CloudWatchEncryptionKeyAliasName
+      TargetKeyId: !Ref CloudWatchEncryptionKey
 
   LambdaExecutionRole:
     Type: "AWS::IAM::Role"
@@ -380,7 +445,19 @@ Outputs:
   EbsDefaultEncryptionKMSKeyArn:
     Description: ARN of the created KMS key
     Value: !GetAtt EbsDefaultEncryptionKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-EbsDefaultEncryptionKMSKeyArn"
 
   EbsDefaultEncryptionKMSKeyAlias:
     Description: Alias of the created KMS key
     Value: !Ref EbsDefaultEncryptionKeyAliasName
+
+  CloudWatchEncryptionKeyArn:
+    Description: ARN of the created KMS key
+    Value: !GetAtt CloudWatchEncryptionKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-CloudWatchEncryptionKeyArn"
+
+  CloudWatchEncryptionKeyAlias:
+    Description: Alias of the created KMS key
+    Value: !Ref CloudWatchEncryptionKeyAliasName
