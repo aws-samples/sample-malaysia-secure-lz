@@ -146,7 +146,7 @@ Key Policy
     
 7. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
     - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-delegate-native-security-services.yaml"
+    - CloudFormation script: "lz-delegate-security-services.yaml"
     - StackName: "lz-delegate-security-services"
     - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.
 8. Delegate Firewall Manager security administration for centralized network management using policies. 
@@ -155,14 +155,14 @@ Key Policy
     - StackName: "lz-delegate-firewall-manager"
     - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.    
 9. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. 
-    Baseline Guardrails
-    - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-organization-scp-guardrails.json"
-    - StackName: "lz-scp-baseline-guardrails"
-    Approved Services
-    - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-organization-scp-approved-services.json"
-    - StackName: "lz-scp-approved-services"
+    - Baseline Guardrails
+        - Deployment Region: Malaysia ap-southeast-5
+        - CloudFormation script: "lz-organization-scp-guardrails.json"
+        - StackName: "lz-scp-baseline-guardrails"
+    - Approved Services
+        - Deployment Region: Malaysia ap-southeast-5
+        - CloudFormation script: "lz-organization-scp-approved-services.json"
+        - StackName: "lz-scp-approved-services"
 10. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies"
 11. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. 
     - Deployment Region: Malaysia ap-southeast-5
