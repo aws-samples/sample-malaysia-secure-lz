@@ -272,7 +272,7 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
-      KMSKeyId: !GetAtt GuardDutyCloudWatchEncryptionKey.Arn
+      KmsKeyId: !GetAtt GuardDutyCloudWatchEncryptionKey.Arn
 
   GuardDutyConfiguration:
     Type: "Custom::GuardDutyConfiguration"
