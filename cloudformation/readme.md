@@ -244,11 +244,12 @@ This will be used for all of the organization users to access the AWS environmen
     - Deployment Region: region where IDC instance is deployed
     - CloudFormation script: "lz-iam-idc-permissionsets.json"
     - StackName: "lz-iam-idc-permissionsets"
-    | Permission Set Role | IAM Permissions | Description |
-    | ------------ | ------------ | ------------ |
-    | SLZProductionSupportAccess | PowerUserAccess | Used by Production Support team to work in production accounts. |
-    | SLZDeveloperAccess | ReadOnlyAccess, AmazonQDeveloperAccess, AWSCodeBuildDeveloperAccess, AmazonEC2FullAccess, AmazonS3FullAccess, AmazonDynamoDBFullAccess, AWSLambda_FullAccess, AmazonRDSFullAccess. AmazonSageMakerFullAccess, AmazonCloudWatchEvidentlyFullAccess | Used by Developers to work productively in development accounts. |
-    | SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
+
+| Permission Set Role | IAM Permissions | Description |
+| ------------ | ------------ | ------------ |
+| SLZProductionSupportAccess | PowerUserAccess | Used by Production Support team to work in production accounts. |
+| SLZDeveloperAccess | ReadOnlyAccess, AmazonQDeveloperAccess, AWSCodeBuildDeveloperAccess, AmazonEC2FullAccess, AmazonS3FullAccess, AmazonDynamoDBFullAccess, AWSLambda_FullAccess, AmazonRDSFullAccess. AmazonSageMakerFullAccess, AmazonCloudWatchEvidentlyFullAccess | Used by Developers to work productively in development accounts. |
+| SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
 
 3. Configure the default identity directory to set MFA is required for all sign-ins. 
 
