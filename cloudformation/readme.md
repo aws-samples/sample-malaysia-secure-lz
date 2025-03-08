@@ -240,7 +240,7 @@ Perform these configurations in central network account
 This will be used for all of the organization users to access the AWS environment.
 1. Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
 
-2. Configure these required IAM Permission Sets. (TODO: specify the permissions in table)
+2. Configure these required IAM Permission Sets.
     - Deployment Region: region where IDC instance is deployed
     - CloudFormation script: "lz-iam-idc-permissionsets.json"
     - StackName: "lz-iam-idc-permissionsets"
