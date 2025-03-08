@@ -360,7 +360,7 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
-      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       LogGroupName: "/aws/lambda/ec2-data-protection-security-update"
 
   EC2DataProtectionSecurity:
@@ -383,7 +383,7 @@ Resources:
     Properties:
       LogGroupName: "/aws/lambda/SetPasswordPolicyLambda"
       RetentionInDays: 14
-      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
   SetPasswordPolicyLambda:
     Type: AWS::Lambda::Function
