@@ -129,6 +129,8 @@ Key Policy
     - For the Control Tower Backup key, ensure to create a new replica key in us-east-1 and any other additional governed region. Go to KMS console, select the "control-tower-backup-key", go to "Regionality" and "Create new replica keys" for us-east-1.
 
 5. Enable AWS Organization Central Root Management. Go to AWS Organization console, select "Centralize root access for member accounts" under IAM. 
+    - Capabilities to enable 1) Root credentials management, and 2) Privileged root actions in member accounts.
+    - Delegate administrator account to Audit or Shared Services account.
 
 6. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). 
     - Deployment Region: Malaysia ap-southeast-5
