@@ -321,6 +321,16 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 - aws-control-tower-backupweekly: true
 - aws-control-tower-backupmonthly: true
 
+## Create Cloudformation Stackset to configure EC2 Default EBS EncryptionIMDSv2 as mandatory and set EBS Snapshots as Block Public Access in all new control tower accounts
+    - Deployment Region: ap-southeast-1
+    - Create new CloudFormation Stackset
+    - Permissions: Service-managed Permissions
+    - Template: lz-new-account-ec2-baseline.yaml
+    - StackSetName: "new-account-ec2-baseline"
+    - Parameters: Set the EbsDefaultEncryptionKeyAdministratorArn parameter to the permitted IAM Admin Role.
+    - Specify Regions: ap-southeast-5, us-east-1
+    - Deployment options: Failure Tolerance : 1
+
 ## Troubleshooting
 1. CloudFormation deployment issues
 - Go to AWS CloudFormation console, and select the Stack that has identified issues.
