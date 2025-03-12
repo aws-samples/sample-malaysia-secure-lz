@@ -267,7 +267,7 @@ Resources:
                   - "sts:GetCallerIdentity"
                   - "iam:UpdateAccountPasswordPolicy"
                 Resource: "*"
-      RoleName: "ec2-data-protection-security-update-lambda"
+      RoleName: !Sub "ec2-data-protection-lambda-${AWS::Region}"
 
   EC2DataProtectionSecurityUpdateLambda:
     Type: "AWS::Lambda::Function"
