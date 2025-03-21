@@ -100,8 +100,14 @@ Resources:
           import boto3
           import cfnresponse
           import os
+          import logging
+
+          # Set up logging
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
 
           def handler(event, context):
+              logger.info(f"Processing event: {event}")
               try:
                   if event['RequestType'] in ['Create', 'Update']:
                       sns = boto3.client('sns')
@@ -110,29 +116,34 @@ Resources:
                       
                       # Clean and validate emails
                       emails = [email.strip() for email in emails if email.strip()]
+                      logger.info(f"Processing {len(emails)} email subscriptions")
                       
                       # Subscribe each email
                       for email in emails:
+                          logger.info(f"Subscribing email: {email}")
                           sns.subscribe(
                               TopicArn=topic_arn,
                               Protocol='email',
                               Endpoint=email
                           )
                       
+                      logger.info("Successfully processed all subscriptions")
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {
                           'Message': f'Successfully subscribed {len(emails)} email(s)'
                       })
                   elif event['RequestType'] == 'Delete':
+                      logger.info("Processing delete request")
                       # Subscriptions are automatically deleted with the topic
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {
                           'Message': 'Subscriptions will be deleted with topic'
                       })
               except Exception as e:
+                  logger.error(f"Error processing request: {str(e)}")
                   cfnresponse.send(event, context, cfnresponse.FAILED, {
                       'Error': str(e)
                   })
-      Runtime: python3.9
-      Timeout: 300
+      Runtime: python3.13
+      Timeout: 60
       MemorySize: 128
 
   SNSSubscriptionFunctionRole:
@@ -156,6 +167,14 @@ Resources:
                 Action:
                   - sns:Subscribe
                 Resource: !Ref SNSTopic
+      
+  SNSSubscriptionFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${SNSSubscriptionFunction}'
+      RetentionInDays: 14
 
   SNSSubscriptions:
     Type: Custom::SNSSubscriptions
