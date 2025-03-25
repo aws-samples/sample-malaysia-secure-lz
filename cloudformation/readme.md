@@ -164,7 +164,7 @@ Key Policy
 10. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. 
     - Baseline Guardrails
         - Deployment Region: Malaysia ap-southeast-5
-        - CloudFormation script: "lz-organization-scp-guardrails.json"
+        - CloudFormation script: "lz-organization-guardrails.json"
         - StackName: "lz-scp-baseline-guardrails"
     - Approved Services
         - Deployment Region: Malaysia ap-southeast-5
