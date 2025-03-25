@@ -155,11 +155,12 @@ Key Policy
     - CloudFormation script: "lz-delegate-security-services.yaml"
     - StackName: "lz-delegate-security-services"
     - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.
-9. Delegate Firewall Manager security administration for centralized network management using policies. 
+9. Delegate Firewall Manager security administration for centralized network management using policies and IPAM Manager. 
     - Deployment Region: N. Virginia us-east-1
-    - CloudFormation script: "lz-delegate-firewall-manager.yaml"
-    - StackName: "lz-delegate-firewall-manager"
-    - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.    
+    - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
+    - StackName: "lz-delegate-firewall-manager-ipam"
+    - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.  
+                  Set the DelegatedIPAMAdminAccount to the network account.    
 10. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. 
     - Baseline Guardrails
         - Deployment Region: Malaysia ap-southeast-5
@@ -320,7 +321,6 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 - aws-control-tower-backupdaily: true
 - aws-control-tower-backupweekly: true
 - aws-control-tower-backupmonthly: true
-
 
 ## Create Cloudformation Stackset to configure EC2 Default EBS EncryptionIMDSv2 as mandatory and set EBS Snapshots as Block Public Access in all new control tower accounts
     - Deployment Region: ap-southeast-1

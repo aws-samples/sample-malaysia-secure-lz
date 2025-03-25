@@ -184,7 +184,12 @@
                         "Condition": {
                         "StringEquals": {
                             "aws:RequestedRegion": "us-east-1"
-                        }
+                        },
+                        "StringNotLike": {
+                                "aws:PrincipalArn": [
+                                    "arn:aws:iam::*:role/AWSControlTowerExecution"
+                                ]
+                            }
                         }
                     },
                     {
