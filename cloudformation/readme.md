@@ -67,6 +67,7 @@ Complete these validation checks before starting the deployment of the SLZ.
     - Regionality: Single-Region
     - Alias: "control-tower-key"
     - Description: "KMS Key used by Control Tower service"
+3. After creating the Control Tower KMS-CMK Key ("control-tower-key"), add the following SID statements to the "control-tower-key" key policy and replace the variables (HOME-REGION, YOUR-MANAGEMENT-ACOUNT-ID, YOUR-KMS-KEY-ID) accordingly.
 Key Policy
 ```
 {
@@ -120,24 +121,23 @@ Key Policy
     - CloudFormation script: "lz-organization.json"
     - StackName: "lz-organization"
     - Parameters: Set the OrganizationRootId parameter to the AWS Organization Root OU.
-3. Create required KMS-CMK key for AWS Control Tower (manual creation). Refer above for sample KMS-CMK key for AWS Control Tower. 
-4. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Exception: Control Tower Backup feature requires KMS-CMK to be multi-region for management across multi-account and governed regions in a central backup vault. 
+3. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Exception: Control Tower Backup feature requires KMS-CMK to be multi-region for management across multi-account and governed regions in a central backup vault. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-organization-kms-iam.json"
     - StackName: "lz-organization-kms-iam"
     - Parameters: Set the KeyAdministratorArn parameter to the permitted IAM Admin Role.
     - For the Control Tower Backup key, ensure to create a new replica key in us-east-1 and any other additional governed region. Go to KMS console, select the "control-tower-backup-key", go to "Regionality" and "Create new replica keys" for us-east-1.
 
-5. Enable AWS Organization Central Root Management. Go to AWS Organization console, select "Centralize root access for member accounts" under IAM. 
+4. Enable AWS Organization Central Root Management. Go to AWS Organization console, select "Centralize root access for member accounts" under IAM. 
     - Capabilities to enable 1) Root credentials management, and 2) Privileged root actions in member accounts.
-    - Delegate administrator account to Audit or Shared Services account.
+    - Delegate administrator account to "Shared Services" account.
 
-6. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). 
+5. Enable AWS Organization Trusted Access for selected services (GuardDuty, Security Hub, Inspector, Detective, Firewall Manager, IAM Access Analyzer, IAM, CloudFormation, Backup). 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-organization-service-access.yaml"
     - StackName: "lz-organization-service-access"
 
-7. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
+6. Enable Control Tower in management account in Malaysia region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
     - Additional region for governance (for global services such as IAM, CloudFront, Route53): us-east-1
     - Foundational OU: Security 
     - Additional OU: Opt out of creating OU
@@ -150,7 +150,7 @@ Key Policy
     - Enable AWS Backup for whole of organization. Specify the new Shared Services (for backup administration) and central backup accounts. These accounts should not be enrolled under AWS Control Tower at the start.
         - Specify the KMS key id for Control Tower Backup encryption
     
-8. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
+7. Delegate security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-delegate-security-services.yaml"
     - StackName: "lz-delegate-security-services"
@@ -170,13 +170,16 @@ Key Policy
         - Deployment Region: Malaysia ap-southeast-5
         - CloudFormation script: "lz-organization-scp-approved-services.json"
         - StackName: "lz-scp-approved-services"
-11. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies"
-12. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. 
+
+10. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies"
+
+11. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-organization-rcp-guardrails.json"
     - StackName: "lz-rcp-baseline-guardrails"
     - Parameters: Set the MyOrganizationId parameter to the AWS Organization ID.
-13. Enforce new AWS account security baseline for each member account in each home region. 
+
+12. Enforce new AWS account security baseline for each member account in each home region. 
     - Enforce EBS Default Encryption with KMS-Customer Managed Key
     - Enforce Block Public Access for EBS snapshots
     - Enforce IMDS defaults as mandatory
@@ -185,12 +188,39 @@ Key Policy
     - CloudFormation script: "lz-account-ec2-baseline.yaml"
     - StackName: "lz-account-baseline"
     - Parameters: Set the KeyAdministratorArn parameter to the permitted IAM Admin Role.
-14. Enforce S3 Block Public Access at account level. This step is contingent on the "AWS Account Security Baseline" script to be executed
+
+13. Enforce S3 Block Public Access at account level. This step is contingent on the "AWS Account Security Baseline" script to be executed
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-account-s3-bpa.yaml"
     - StackName: "lz-account-s3-bpa"
-15. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
-16. Setup centralized networking account. 
+
+14. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
+
+15. Enable IAM Access Analyzer in the management account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
+    - Deployment Region: Malaysia ap-southeast-5
+    - CloudFormation script: "lz-audit-access-analyzer.yaml"
+    - StackName: "lz-audit-access-analyzer"
+    - Parameter: 
+        - AnalyzerType: ACCOUNT
+
+16. Configure IAM Identity Center (IDC). IDC is used for all of the organization users to access the AWS environment for a single-sign-on experience.
+    - Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
+    - Configure these required IAM Permission Sets.
+        - Deployment Region: region where IDC instance is deployed
+        - CloudFormation script: "lz-iam-idc-permissionsets.json"
+        - StackName: "lz-iam-idc-permissionsets"
+    - (Optional) Configure your organization's Identity Provider (e.g. Microsoft EntraID, OKTA) to set MFA is required for all sign-in requests. 
+    - Assign the IDC users with the required Permission Sets to all the AWS accounts.
+
+| Permission Set Role | IAM Permissions | Description |
+| ------------ | ------------ | ------------ |
+| SLZProductionSupportAccess | PowerUserAccess | Used by Production Support team to work in production accounts. |
+| SLZDeveloperAccess | ReadOnlyAccess, AmazonQDeveloperAccess, AWSCodeBuildDeveloperAccess, AmazonEC2FullAccess, AmazonS3FullAccess, AmazonDynamoDBFullAccess, AWSLambda_FullAccess, AmazonRDSFullAccess. AmazonSageMakerFullAccess, AmazonCloudWatchEvidentlyFullAccess | Used by Developers to work productively in development accounts. |
+| SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
+
+
+17. Setup centralized networking account. 
+    - Create a new "Centralized Networking" account from Control Tower.
     - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ROOT-OU-ID/INFRASTRUCTURE-OU-ID
     - Login to new network account to run CloudFormation script that deploys the VPC, AWS Network Firewall, Transit Gateway and Subnets. 
         - Deployment Region: Malaysia ap-southeast-5
@@ -239,26 +269,13 @@ Perform these configurations in central network account
 
 7. Configure the Transit Gateway routetable and propagation for the VPN connection that is attached to Transit Gateway
 
-## Configure IAM Identity Center (IDC)
-This will be used for all of the organization users to access the AWS environment.
-1. Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
-
-2. Configure these required IAM Permission Sets.
-    - Deployment Region: region where IDC instance is deployed
-    - CloudFormation script: "lz-iam-idc-permissionsets.json"
-    - StackName: "lz-iam-idc-permissionsets"
-
-| Permission Set Role | IAM Permissions | Description |
-| ------------ | ------------ | ------------ |
-| SLZProductionSupportAccess | PowerUserAccess | Used by Production Support team to work in production accounts. |
-| SLZDeveloperAccess | ReadOnlyAccess, AmazonQDeveloperAccess, AWSCodeBuildDeveloperAccess, AmazonEC2FullAccess, AmazonS3FullAccess, AmazonDynamoDBFullAccess, AWSLambda_FullAccess, AmazonRDSFullAccess. AmazonSageMakerFullAccess, AmazonCloudWatchEvidentlyFullAccess | Used by Developers to work productively in development accounts. |
-| SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
-
-3. Configure the default identity directory to set MFA is required for all sign-ins. 
-
 ## Configure AWS Security Services
-1. Login to the delegated administration account for security i.e. Control Tower audit account.
-2. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts.
+1. Enable Security Hub in management account for all the governed regions
+    - Deployment Region: Malaysia ap-southeast-5, N. Virgina us-east-1
+    - CloudFormation script: "lz-audit-securityhub.json"
+    - StackName: "lz-organization-securityhub"
+2. Login to the "Audit" account which is delegated security administration for the Control Tower landing zone.
+3. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts.
     - S3 Protection
     - Runtime Monitoring
     - Lambda Network Activity Monitoring
@@ -267,11 +284,13 @@ This will be used for all of the organization users to access the AWS environmen
     - CloudFormation script: "lz-audit-guardduty.yaml"
     - StackName: "lz-audit-guardduty"
     - Add all the member accounts to the GuardDuty Protection Plan. Go to "GuardDuty" --> Accounts in delegated administration account for security. Select "Add Member" under "Actions"
-3. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. 
+4. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-audit-access-analyzer.yaml"
     - StackName: "lz-audit-access-analyzer"
-4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
+    - Parameter: 
+        - AnalyzerType: ORGANIZATION
+5. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
         - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
@@ -284,7 +303,7 @@ This will be used for all of the organization users to access the AWS environmen
         - [Macie.1] Amazon Macie should be enabled
         - [Macie.2] Macie automated sensitive data discovery should be enabled
     - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources. WORKAROUND: The above central configuration has to be done manually.
-4. Create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
+6. In the "Audit" account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
 ```
 {
   "source": ["aws.securityhub"],
@@ -321,16 +340,6 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 - aws-control-tower-backupdaily: true
 - aws-control-tower-backupweekly: true
 - aws-control-tower-backupmonthly: true
-
-## Create Cloudformation Stackset to configure EC2 Default EBS EncryptionIMDSv2 as mandatory and set EBS Snapshots as Block Public Access in all new control tower accounts
-    - Deployment Region: ap-southeast-1
-    - Create new CloudFormation Stackset
-    - Permissions: Service-managed Permissions
-    - Template: lz-new-account-ec2-baseline.yaml
-    - StackSetName: "new-account-ec2-baseline"
-    - Parameters: Set the EbsDefaultEncryptionKeyAdministratorArn parameter to the permitted IAM Admin Role.
-    - Specify Regions: ap-southeast-5, us-east-1
-    - Deployment options: Failure Tolerance : 1
 
 ## Troubleshooting
 1. CloudFormation deployment issues

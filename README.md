@@ -21,7 +21,7 @@ git push -uf origin main
 
 |Security Domain|Control Implementation|CGSO Control Reference|SLZ Configuration|
 | --- | --- | --- | --- |
-| Identity Access Management | IAM Identity Center (Administrator, Developer, Security, Infrastructure Operations, DevOps Permission Sets) | 7.8.1 | PENDING |
+| Identity Access Management | IAM Identity Center (Administrator, Developer, Security, Infrastructure Operations, DevOps Permission Sets) | 7.8.1 | lz-iam-idc-permissionsets.json |
 | Identity Access Management | IAM Password Policy | 7.5.7 | lz-new-account-ec2-baseline.yaml |
 | Data Sovereignty | IAM Service Control Policy | 7.1.1, 7.2.1, 12.7.1 | lz-organization-scp-guardrails.json |
 | Data Protection | IAM Service Control Policy | 7.1.3 | lz-organization-scp-guardrails.json |
