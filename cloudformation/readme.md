@@ -288,6 +288,13 @@ Perform these configurations in central network account
     - StackName: "lz-audit-guardduty"
     - Add all the member accounts to the GuardDuty Protection Plan. Go to "GuardDuty" --> Accounts in delegated administration account for security. Select "Add Member" under "Actions"
 
+4. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. 
+- Deployment Region: Malaysia ap-southeast-5
+- CloudFormation script: "lz-audit-access-analyzer.yaml"
+- StackName: "lz-audit-access-analyzer"
+- Parameter: 
+    - AnalyzerType: ORGANIZATION
+
 5. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
