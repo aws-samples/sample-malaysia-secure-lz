@@ -45,18 +45,19 @@ Feature Components
 
 
 ## Prerequisites:
-Complete these validation checks before starting the deployment of the SLZ. 
-1. AWS management account has been created. 
-2. Prepare an AWS Organization (without AWS Control Tower) in management account. Go to AWS Organization, and "Create an organization". Take note of the Organization ID (o-xxx), that will be used in subsequent installation steps.
-3. Create a "Shared Services" account that is used for backup administration, IAM Identity Center administration delegation and other common cloud operation actions. This will be required during Control Tower Backup setup.
-4. Create a "Central Backup" account that is used for the central storage of backups. This will be required during Control Tower Backup setup.
-5. AWS environment does not have any running workloads and services. 
-6. All deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
-7. Prepare separate emails for log-archive and audit accounts that will be created when Control Tower is initiated.
-8. Disable existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all the regions. Remove delegated administration setting for each of the services. 
-9. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
-10. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
-11. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia SLZ configuration pulled from (AWS source repo). 
+Complete these validation checks before deploying the SLZ:
+1. Create an AWS management account.
+2. Create an IAM user with Administrator access. Log in as this user.
+3. Create an AWS Organization (without AWS Control Tower) in the management account. In the AWS Organization console, select "Create an organization". Note the Organization ID (o-xxx), as it will be used in subsequent installation steps.
+4. Create a "Shared Services" account for backup administration, IAM Identity Center administration delegation, and other common cloud operation actions. This account is required during Control Tower Backup setup.
+5. Create a "Central Backup" account for centralized storage of backups. This account is required during Control Tower Backup setup.
+6. Ensure the AWS environment has no running workloads or services.
+7. Ensure all deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
+8. Prepare separate email addresses for log-archive and audit accounts that will be created during Control Tower initialization.
+9. Disable all existing AWS security services (Security Hub, Config, GuardDuty, Detective, Inspector) across all regions. Remove delegated administration settings for each service.
+10. Enable the Malaysia (ap-southeast-5) opt-in region from the AWS Organization console.
+11. Check for suspended accounts in the Organization. These accounts will not be enrolled in Control Tower and will be isolated under the Suspended OU.
+12. Create a new repository in GitHub, GitLab, or BitBucket to store the Malaysia SLZ configuration from the AWS source repository.
 
 
 ## Installation Steps
@@ -121,6 +122,7 @@ Key Policy
     - CloudFormation script: "lz-organization.json"
     - StackName: "lz-organization"
     - Parameters: Set the OrganizationRootId parameter to the AWS Organization Root OU.
+    - NOTE: Dont change the stack-name to avoid conflict with following deployment steps.
 3. Create required KMS-CMK keys for CloudWatch Log Groups, Control Tower Backup and required IAM roles for Backup and SSM. Exception: Control Tower Backup feature requires KMS-CMK to be multi-region for management across multi-account and governed regions in a central backup vault. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-organization-kms-iam.json"
@@ -194,7 +196,7 @@ Key Policy
     - CloudFormation script: "lz-account-s3-bpa.yaml"
     - StackName: "lz-account-s3-bpa"
 
-14. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
+14. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts. Dont enable backup.
 
 15. Enable IAM Access Analyzer in the management account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
     - Deployment Region: Malaysia ap-southeast-5
@@ -210,7 +212,7 @@ Key Policy
         - CloudFormation script: "lz-iam-idc-permissionsets.json"
         - StackName: "lz-iam-idc-permissionsets"
     - (Optional) Configure your organization's Identity Provider (e.g. Microsoft EntraID, OKTA) to set MFA is required for all sign-in requests. 
-    - Assign the IDC users with the required Permission Sets to all the AWS accounts.
+    - Assign the IDC users with the required SLZProductionSupportAccess to all the AWS accounts. This user will be use to continue configure remaining of Secured Landing Zone setup in member accounts.
 
 | Permission Set Role | IAM Permissions | Description |
 | ------------ | ------------ | ------------ |
@@ -221,7 +223,7 @@ Key Policy
 
 17. Setup centralized networking account. 
     - Create a new "Centralized Networking" account from Control Tower.
-    - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ROOT-OU-ID/INFRASTRUCTURE-OU-ID
+    - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ORGANIZATION-ID/INFRASTRUCTURE-OU-ID
     - Login to new network account to run CloudFormation script that deploys the VPC, AWS Network Firewall, Transit Gateway and Subnets. 
         - Deployment Region: Malaysia ap-southeast-5
         - CloudFormation script: "lz-central-network.json"
@@ -284,12 +286,14 @@ Perform these configurations in central network account
     - CloudFormation script: "lz-audit-guardduty.yaml"
     - StackName: "lz-audit-guardduty"
     - Add all the member accounts to the GuardDuty Protection Plan. Go to "GuardDuty" --> Accounts in delegated administration account for security. Select "Add Member" under "Actions"
+
 4. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. 
-    - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-audit-access-analyzer.yaml"
-    - StackName: "lz-audit-access-analyzer"
-    - Parameter: 
-        - AnalyzerType: ORGANIZATION
+- Deployment Region: Malaysia ap-southeast-5
+- CloudFormation script: "lz-audit-access-analyzer.yaml"
+- StackName: "lz-audit-access-analyzer"
+- Parameter: 
+    - AnalyzerType: ORGANIZATION
+
 5. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
@@ -340,6 +344,18 @@ AWS Control Tower provides these 4 types of backup policies (hourly, daily, week
 - aws-control-tower-backupdaily: true
 - aws-control-tower-backupweekly: true
 - aws-control-tower-backupmonthly: true
+
+## Organization CloudTrail for S3 Data events
+An Organization CloudTrail for S3 Data events is used to monitor and log access to S3 objects across all accounts in an AWS Organization, focusing on specific buckets or objects.
+- Go to AWS CloudTrail in the AWS Console. Click Create trail.
+- Under Trail name, enter a meaningful name
+- Select Enable for my organization to apply the trail to all accounts.
+- Choose the existing S3 bucket used to collect CloudTrail logs
+- Configure KMS encryption for security.
+- Under Event type, check Data events. Switch to Basic event selector
+- Click S3 and choose either to trail for all bucker or specific S3 buckets.
+- Configure CloudWatch Logs if monitoring is required.
+- Review and Click Create trail.
 
 ## Troubleshooting
 1. CloudFormation deployment issues
