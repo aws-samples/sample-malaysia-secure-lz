@@ -41,17 +41,17 @@ Parameters:
     Type: String
     Default: KMS key for EBS volume default encryption
     Description: Description for the KMS key
-  CloudWatchEncryptionKeyAliasName:
-    Type: String
-    Default: alias/account-baseline-log-group-encryption
-    Description: Alias name for the KMS key (prefix with 'alias/', cannot use 'alias/aws' which is reserved for AWS managed keys)
+  # CloudWatchEncryptionKeyAliasName:
+  #   Type: String
+  #   Default: alias/account-baseline-log-group-encryption
+  #   Description: Alias name for the KMS key (prefix with 'alias/', cannot use 'alias/aws' which is reserved for AWS managed keys)
   EnableKeyRotation:
     Type: String
-    Default: 'true'
+    Default: "true"
     AllowedValues:
-      - 'true'
-      - 'false'
-    Description: Enable automatic key rotation (recommended)  
+      - "true"
+      - "false"
+    Description: Enable automatic key rotation (recommended)
   EC2IMDSv2Mandatory:
     AllowedValues: ["true", "false"]
     Default: "true"
@@ -61,7 +61,7 @@ Parameters:
     AllowedValues: ["block-all-sharing", "block-new-sharing"]
     Default: "block-all-sharing"
     Description: "EC2 enable EBS Snapshots Block Public Access."
-    Type: String      
+    Type: String
   LoggingLevel:
     AllowedValues: ["CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING"]
     Default: "INFO"
@@ -106,6 +106,11 @@ Parameters:
     MaxValue: 24
     Description: "Number of previous passwords that users are prevented from reusing (between 1 and 24)"
 
+Mappings:
+  Constants:
+    KMSAlias:
+      Name: "alias/account-baseline-log-group-encryption"
+
 Resources:
   EbsDefaultEncryptionKey:
     Type: AWS::KMS::Key
@@ -113,14 +118,14 @@ Resources:
       Description: !Ref EbsDefaultEncryptionKeyKeyDescription
       EnableKeyRotation: !Ref EnableKeyRotation
       KeyPolicy:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Sid: Enable IAM User Permissions
             Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
             Action: kms:*
-            Resource: '*'
+            Resource: "*"
           - Sid: Allow Key Administrator
             Effect: Allow
             Principal:
@@ -140,11 +145,11 @@ Resources:
               - kms:UntagResource
               - kms:ScheduleKeyDeletion
               - kms:CancelKeyDeletion
-            Resource: '*'
+            Resource: "*"
           - Sid: Allow EBS Service
             Effect: Allow
             Principal:
-              AWS: '*'
+              AWS: "*"
             Action:
               - kms:Encrypt
               - kms:Decrypt
@@ -153,11 +158,11 @@ Resources:
               - kms:CreateGrant
               - kms:ListGrants
               - kms:DescribeKey
-            Resource: '*'
+            Resource: "*"
             Condition:
               StringEquals:
-                kms:ViaService: !Sub 'ec2.${AWS::Region}.amazonaws.com'
-                kms:CallerAccount: !Ref 'AWS::AccountId'
+                kms:ViaService: !Sub "ec2.${AWS::Region}.amazonaws.com"
+                kms:CallerAccount: !Ref "AWS::AccountId"
       Tags:
         - Key: Purpose
           Value: EBS Default Encryption
@@ -172,19 +177,18 @@ Resources:
 
   CloudWatchEncryptionKey:
     Type: "AWS::KMS::Key"
-    Properties: 
+    Properties:
       Description: "Account Baseline CloudWatch LogGroup Key"
       EnableKeyRotation: true
-      KeyPolicy: 
+      KeyPolicy:
         Version: "2012-10-17"
         Id: "key-default-1"
-        Statement: 
-          - 
-            Sid: "Allow Key Administration"
+        Statement:
+          - Sid: "Allow Key Administration"
             Effect: "Allow"
-            Principal: 
+            Principal:
               AWS: !Ref EbsDefaultEncryptionKeyAdministratorArn
-            Action: 
+            Action:
               - "kms:Create*"
               - "kms:Describe*"
               - "kms:Enable*"
@@ -201,12 +205,11 @@ Resources:
               - "kms:TagResource"
               - "kms:UntagResource"
             Resource: "*"
-          - 
-            Sid: "Allow CloudWatch Logs Service"
+          - Sid: "Allow CloudWatch Logs Service"
             Effect: "Allow"
-            Principal: 
+            Principal:
               Service: !Sub logs.${AWS::Region}.amazonaws.com
-            Action: 
+            Action:
               - "kms:Decrypt*"
               - "kms:Encrypt*"
               - "kms:GenerateDataKey*"
@@ -216,19 +219,18 @@ Resources:
             Condition:
               ArnEquals:
                 "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-          - 
-            Sid: "Enable IAM User Permissions"
+          - Sid: "Enable IAM User Permissions"
             Effect: "Allow"
-            Principal: 
+            Principal:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: 
+            Action:
               - "kms:*"
             Resource: "*"
 
   CloudWatchEncryptionKeyAlias:
     Type: AWS::KMS::Alias
     Properties:
-      AliasName: !Ref CloudWatchEncryptionKeyAliasName
+      AliasName: !FindInMap [Constants, KMSAlias, Name]
       TargetKeyId: !Ref CloudWatchEncryptionKey
 
   LambdaExecutionRole:
@@ -267,7 +269,7 @@ Resources:
                   - "sts:GetCallerIdentity"
                   - "iam:UpdateAccountPasswordPolicy"
                 Resource: "*"
-      RoleName: "ec2-data-protection-security-update-lambda"
+      RoleName: !Sub "ec2-data-protection-lambda-${AWS::Region}"
 
   EC2DataProtectionSecurityUpdateLambda:
     Type: "AWS::Lambda::Function"
@@ -360,7 +362,7 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
-      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       LogGroupName: "/aws/lambda/ec2-data-protection-security-update"
 
   EC2DataProtectionSecurity:
@@ -383,7 +385,7 @@ Resources:
     Properties:
       LogGroupName: "/aws/lambda/SetPasswordPolicyLambda"
       RetentionInDays: 14
-      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
   SetPasswordPolicyLambda:
     Type: AWS::Lambda::Function
@@ -463,4 +465,4 @@ Outputs:
 
   CloudWatchEncryptionKeyAlias:
     Description: Alias of the created KMS key
-    Value: !Ref CloudWatchEncryptionKeyAliasName
+    Value: !FindInMap [Constants, KMSAlias, Name]

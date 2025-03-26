@@ -155,17 +155,16 @@ Key Policy
     - CloudFormation script: "lz-delegate-security-services.yaml"
     - StackName: "lz-delegate-security-services"
     - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.
-    
-8. Delegate Firewall Manager security administration for centralized network management using policies. 
+9. Delegate Firewall Manager security administration for centralized network management using policies and IPAM Manager. 
     - Deployment Region: N. Virginia us-east-1
-    - CloudFormation script: "lz-delegate-firewall-manager.yaml"
-    - StackName: "lz-delegate-firewall-manager"
-    - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.    
-
-9. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. 
+    - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
+    - StackName: "lz-delegate-firewall-manager-ipam"
+    - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.  
+                  Set the DelegatedIPAMAdminAccount to the network account.    
+10. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. 
     - Baseline Guardrails
         - Deployment Region: Malaysia ap-southeast-5
-        - CloudFormation script: "lz-organization-scp-guardrails.json"
+        - CloudFormation script: "lz-organization-guardrails.json"
         - StackName: "lz-scp-baseline-guardrails"
     - Approved Services
         - Deployment Region: Malaysia ap-southeast-5
