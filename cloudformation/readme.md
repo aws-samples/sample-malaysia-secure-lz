@@ -351,8 +351,8 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 - Go to AWS CloudTrail in the AWS Console. Click Create trail.
 - Under Trail name, enter a meaningful name
 - Select Enable for my organization to apply the trail to all accounts.
-- Choose an S3 bucket for CloudTrail logs or create a new one.
-- (Optional) Configure KMS encryption for security.
+- Choose the existing S3 bucket used to collect CloudTrail logs
+- Configure KMS encryption for security.
 - Under Event type, check Data events. Switch to Basic event selector
 - Click S3 and choose either to trail for all bucker or specific S3 buckets.
 - Configure CloudWatch Logs if monitoring is required.
