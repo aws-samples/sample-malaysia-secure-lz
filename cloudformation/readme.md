@@ -57,6 +57,15 @@ Complete these validation checks before starting the deployment of the SLZ.
 9. Enable opt-in Malaysia (ap-southeast-5) region from AWS Organization console.
 10. Check for suspended accounts in the Organization. These would not be enrolled to Control Tower, and will be isolated under Suspended OU.
 11. Customer needs to create a new repository in GitHub, GitLab or BitBucket to store the Malaysia SLZ configuration pulled from (AWS source repo). 
+12. Create an S3 Bucket for CloudFormation Templates in the ap-southeast-5 region. 
+    - Configure bucket settings:
+        - Block all public access: Enabled (recommended)
+        - Bucket versioning: Enabled (recommended)
+        - Default encryption: Enabled (recommended)
+    - Upload the below cloudformation templates into the S3 bucket. You can upload the files to the root of the bucket, or specify a prefix if templates are to be in a folder.
+        - lz-organization-guardrails.json
+        - lz-organization-scp-approved-services.json
+        - lz-organization-rcp-guardrails.json
 
 
 ## Installation Steps
@@ -160,39 +169,43 @@ Key Policy
     - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
     - StackName: "lz-delegate-firewall-manager-ipam"
     - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.  
-                  Set the DelegatedIPAMAdminAccount to the network account.    
-10. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails and approved services guardrails. Specify the target OUs to attach the SCPs to. 
-    - Baseline Guardrails
-        - Deployment Region: Malaysia ap-southeast-5
-        - CloudFormation script: "lz-organization-guardrails.json"
-        - StackName: "lz-scp-baseline-guardrails"
-    - Approved Services
-        - Deployment Region: Malaysia ap-southeast-5
-        - CloudFormation script: "lz-organization-scp-approved-services.json"
-        - StackName: "lz-scp-approved-services"
+                  Set the DelegatedIPAMAdminAccount to the network account.   
 
 10. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies"
 
-11. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. 
+11. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails, approved services guardrails and Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs..(Refer Step 10) 
+    - Deployment Region: Malaysia ap-southeast-5
+    - CloudFormation script: "lz-organization-guardrails.yaml"
+    - StackName: "lz-organization-guardrails"
+    Specify the parameters:
+        - **S3BucketName**: Your S3 bucket name. Name of the bucket created in the pre-requisites where the cloudformation templates are uploaded.
+        - **S3KeyPrefix**: Leave empty if templates are in the root of the bucket, or specify a prefix if templates are in a folder
+        - **BaselineGuardrailPolicyName**: Name for the baseline guardrail policy (e.g., `my-lza-guardrail`)
+        - **BaselineGuardrailPolicyDescription**: Description for the baseline guardrail policy
+        - **ApprovedServicesPolicyName**: Name for the approved services policy (e.g., `my-lza-approved-services`)
+        - **ApprovedServicesPolicyDescription**: Description for the approved services policy
+        - **BaselineResourceGuardrailPolicyName**: Name for the resource guardrail policy (e.g., `my-lza-resource-guardrail`)
+        - **BaselineResourceGuardrailPolicyDescription**: Description for the resource guardrail policy
+        - **TargetOrganizationalUnitIds**: Comma-separated list of OU IDs to attach the policies to (e.g., `ou-abcd-1example,ou-efgh-2example`)
+        - **TargetRootOrgIdforEC2Settings**: root organization ID (e.g., `r-abcd`)
+        - **MyOrganizationId**: Your AWS Organization ID (e.g., `o-abcdefghij`)
+    When executed, this template creates three child stacks in sequence, maintaining the proper order of operations required for effective policy implementation across your AWS Organization.
+
+
+12. Configure AWS Organization Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-organization-rcp-guardrails.json"
     - StackName: "lz-rcp-baseline-guardrails"
     - Parameters: Set the MyOrganizationId parameter to the AWS Organization ID.
 
-12. Enforce new AWS account security baseline for each member account in each home region. 
-    - Enforce EBS Default Encryption with KMS-Customer Managed Key
-    - Enforce Block Public Access for EBS snapshots
-    - Enforce IMDS defaults as mandatory
-    - BACKLOG: Set alternate security contact information
-    - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-account-ec2-baseline.yaml"
-    - StackName: "lz-account-baseline"
-    - Parameters: Set the KeyAdministratorArn parameter to the permitted IAM Admin Role.
-
-13. Enforce S3 Block Public Access at account level. This step is contingent on the "AWS Account Security Baseline" script to be executed
-    - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-account-s3-bpa.yaml"
-    - StackName: "lz-account-s3-bpa"
+13. Create Cloudformation Stackset to configure new AWS account security baseline for each member account in each home region 
+    - Deployment Region: ap-southeast-1
+    - Create new CloudFormation Stackset
+    - Permissions: Service-managed Permissions
+    - Template: lz-account-baseline.yaml
+    - StackSetName: "lz-account-baseline"
+    - Parameters: Set the EbsDefaultEncryptionKeyAdministratorArn parameter to the permitted IAM Admin Role.
+    - Specify Regions: ap-southeast-5, us-east-1
 
 14. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts.
 
