@@ -244,7 +244,8 @@
             "Type": "AWS::Organizations::Policy",
             "Properties": {
                 "Type": "DECLARATIVE_POLICY_EC2",
-                "Name": "EnforceIMDSv2",
+                "Name": "EnforceAccountEC2Baseline",
+                "Description": "Enforce IMDSv2 as mandatory, and Block Public Access for AMI and EBS snapshots",
                 "Content": {
                     "ec2_attributes": {
                         "instance_metadata_defaults": {
