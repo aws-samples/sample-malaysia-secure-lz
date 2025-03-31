@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Nested stack for Malaysia SLZ guardrails - combines baseline guardrails, approved services, and resource control policies"
+Description: "Nested stack for Malaysia SLZ guardrails - combines baseline Service Control Policy guardrails, approved services, and Resource Control policies"
 
 Parameters:
   S3BucketName:
@@ -13,7 +13,7 @@ Parameters:
 
   BaselineGuardrailPolicyName:
     Type: String
-    Default: my-lza-guardrail
+    Default: my-slz-guardrail
     Description: Name of the baseline guardrail Service Control Policy
 
   BaselineGuardrailPolicyDescription:
@@ -23,7 +23,7 @@ Parameters:
 
   ApprovedServicesPolicyName:
     Type: String
-    Default: my-lza-approved-services
+    Default: my-slz-approved-services
     Description: Name of the approved services Service Control Policy
 
   ApprovedServicesPolicyDescription:
@@ -33,7 +33,7 @@ Parameters:
 
   BaselineResourceGuardrailPolicyName:
     Type: String
-    Default: my-lza-resource-guardrail
+    Default: my-slz-resource-guardrail
     Description: Name of the baseline guardrail Resource Control Policy
 
   BaselineResourceGuardrailPolicyDescription:
