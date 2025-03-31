@@ -11,11 +11,6 @@
             "Default": "o-",
             "Description": "Your AWS Organization ID (starts with O-)"
         },
-        "CloudWatchKeyAlias": {
-            "Type": "String",
-            "Default": "alias/cloudwatch-logs-key",
-            "Description": "Alias name for the CloudWatch Logs KMS key"
-        },
         "ControlTowerBackupKeyAliasName": {
             "Type": "String",
             "Default": "alias/control-tower-backup-key",
@@ -39,6 +34,13 @@
             "Type": "String",
             "Default": "EC2SSMCloudWatchRole",
             "Description": "Name of the IAM role for EC2 instances"
+        }
+    },
+    "Mappings": {
+        "Constants": {
+            "KMSAlias": {
+                "Name": "alias/cloudwatch-logs-key"
+            }
         }
     },
     "Resources": {
@@ -197,7 +199,11 @@
             "Type": "AWS::KMS::Alias",
             "Properties": {
                 "AliasName": {
-                    "Ref": "CloudWatchKeyAlias"
+                    "Fn::FindInMap": [
+                        "Constants",
+                        "KMSAlias",
+                        "Name"
+                    ]
                 },
                 "TargetKeyId": {
                     "Ref": "CloudWatchLogsKey"
@@ -259,7 +265,7 @@
                                 "AWS": "*"
                             },
                             "Action": [
-                                "kms:Encrypt*",                                
+                                "kms:Encrypt*",
                                 "kms:ReEncrypt*",
                                 "kms:Decrypt*",
                                 "kms:DescribeKey",
@@ -308,7 +314,9 @@
                 "Ref": "CloudWatchLogsKey"
             },
             "Export": {
-                "Name": {"Fn::Sub": "${AWS::StackName}-CloudWatchLogsKeyId"}
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-CloudWatchLogsKeyId"
+                }
             }
         },
         "CloudWatchLogsKeyArn": {
@@ -320,7 +328,9 @@
                 ]
             },
             "Export": {
-                "Name": {"Fn::Sub": "${AWS::StackName}-CloudWatchLogsKeyArn"}
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-CloudWatchLogsKeyArn"
+                }
             }
         },
         "ControlTowerBackupKeyId": {
@@ -329,7 +339,9 @@
                 "Ref": "ControlTowerBackupKey"
             },
             "Export": {
-                "Name": {"Fn::Sub": "${AWS::StackName}-ControlTowerBackupKeyId"}
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-ControlTowerBackupKeyId"
+                }
             }
         },
         "ControlTowerBackupKeyArn": {
@@ -341,7 +353,9 @@
                 ]
             },
             "Export": {
-                "Name": {"Fn::Sub": "${AWS::StackName}-ControlTowerBackupKeyArn"}
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-ControlTowerBackupKeyArn"
+                }
             }
         },
         "BackupRoleArn": {

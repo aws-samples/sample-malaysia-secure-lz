@@ -190,7 +190,7 @@ Resources:
                       logger.info("GuardDuty delegated security admin account was already deleted or did not exist")
                   else:
                       logger.error(f"Error resetting GuardDuty delegated security admin account configuration: {str(e)}")
-                      raise                      
+                      raise
       Description: "Updates and deletes the AWS native Security Services admin delegation configuration at organization level in a region."
       Environment:
         Variables:

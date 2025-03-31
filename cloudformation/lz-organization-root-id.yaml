@@ -1,5 +1,5 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'CloudFormation template to deploy Lambda function for retrieving Organization and Root IDs'
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to deploy Lambda function for retrieving Organization and Root IDs"
 
 Resources:
   # IAM Role for Lambda
@@ -7,7 +7,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -20,25 +20,25 @@ Resources:
       Policies:
         - PolicyName: OrganizationAndSSMAccess
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
                   - organizations:ListRoots
                   - organizations:DescribeOrganization
-                Resource: '*'
+                Resource: "*"
 
   GetOrganizationRootIdLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-get-function'
-      RetentionInDays: 30  # Adjust retention period as needed
-    DeletionPolicy: Delete  # Ensure the log group is deleted when the stack is deleted
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}-get-function"
+      RetentionInDays: 30 # Adjust retention period as needed
+    DeletionPolicy: Delete # Ensure the log group is deleted when the stack is deleted
 
   GetOrganizationRootId:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-get-function'
+      FunctionName: lz-root-organization-get-function
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
         ZipFile: |
@@ -122,7 +122,7 @@ Resources:
       Timeout: 60
       MemorySize: 128
       Handler: index.lambda_handler
-      Description: 'Lambda function that retrieves AWS Organizations Root ID and Organization ID. Automatically triggered during stack creation/update via Custom::LambdaTrigger and exports the IDs for use by other stacks.'
+      Description: "Lambda function that retrieves AWS Organizations Root ID and Organization ID. Automatically triggered during stack creation/update via Custom::LambdaTrigger and exports the IDs for use by other stacks."
       Tags:
         - Key: Purpose
           Value: Retrieve Organization IDs
@@ -138,10 +138,10 @@ Outputs:
     Description: "Root ID from Organizations API"
     Value: !GetAtt TriggerLambda.RootId
     Export:
-      Name: !Sub '${AWS::StackName}-RootId'
+      Name: "lz-organization-RootId"
 
   OrganizationId:
     Description: "Organization ID from Organizations API"
     Value: !GetAtt TriggerLambda.OrganizationId
     Export:
-      Name: !Sub '${AWS::StackName}-OrganizationId'
+      Name: "lz-organization-OrganizationId"
