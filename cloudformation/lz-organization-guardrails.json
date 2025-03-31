@@ -265,6 +265,11 @@
                             "state": {
                                 "@@assign": "block_new_sharing"
                             }
+                        },
+                        "snapshot_block_public_access": {
+                            "state": {
+                                "@@assign": "block_all_sharing"
+                            }
                         }
                     }
                 },

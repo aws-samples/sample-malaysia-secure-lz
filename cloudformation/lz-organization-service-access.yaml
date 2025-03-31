@@ -45,47 +45,47 @@ Metadata:
         default: "Logging Level"
 
 Parameters:
-  GuardDuty:
+  GuardDutyEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable GuardDuty to identify threats in the AWS environment."
-    Type: String 
-  SecurityHub:
+    Type: String
+  SecurityHubEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable Security Hub for continuous compliance monitoring."
     Type: String
-  Detective:
+  DetectiveEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable Detective for investigation of GuardDuty alerts."
     Type: String
-  Inspector:
+  InspectorEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable Inspector to scan for known vulnerabilities in EC2, Containers, and Lambda functions."
     Type: String
-  FirewallManager:
+  FirewallManagerEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable Firewall Manager for centralized network management."
     Type: String
-  IAMAccessAnalyzer:
+  IAMAccessAnalyzerEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable IAM Access Analyzer to identify unauthorized external sharing of resources."
     Type: String
-  IAM:
+  IAMEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable IAM for centralized root management for organization."
     Type: String
-  CloudFormation:
+  CloudFormationEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable CloudFormation Stacks for across multiple accounts and regions."
     Type: String
-  Backup:
+  BackupEnable:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable automated Backup plans across multiple accounts and regions."
@@ -244,20 +244,23 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
-      KmsKeyId: { "Fn::ImportValue" :  {"Fn::Sub": "${OrganizationKmsIam}-CloudWatchLogsKeyArn" } }
+      "KmsKeyId":
+        {
+          "Fn::Sub": "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/cloudwatch-logs-key",
+        }
 
   OrganizationServiceTrustedAccess:
     Type: "Custom::OrganizationServiceTrustedAccess"
     Properties:
-      GuardDuty: !Ref GuardDuty
-      SecurityHub: !Ref SecurityHub
-      Inspector: !Ref Inspector
-      Detective: !Ref Detective
-      FirewallManager: !Ref FirewallManager
-      IAMAccessAnalyzer: !Ref IAMAccessAnalyzer
-      IAM: !Ref IAM
-      CloudFormation: !Ref CloudFormation
-      Backup: !Ref Backup
+      GuardDuty: !Ref GuardDutyEnable
+      SecurityHub: !Ref SecurityHubEnable
+      Inspector: !Ref InspectorEnable
+      Detective: !Ref DetectiveEnable
+      FirewallManager: !Ref FirewallManagerEnable
+      IAMAccessAnalyzer: !Ref IAMAccessAnalyzerEnable
+      IAM: !Ref IAMEnable
+      CloudFormation: !Ref CloudFormationEnable
+      Backup: !Ref BackupEnable
       RAM: !Ref RAM
       ServiceToken: !GetAtt OrganizationServiceTrustedAccessLambda.Arn
 
