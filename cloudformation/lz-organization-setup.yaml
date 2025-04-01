@@ -127,6 +127,12 @@ Resources:
         OrganizationRootId: !Ref OrganizationRootId
       TimeoutInMinutes: 30
 
+  CloudFormationStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}lz-stackset-roles.yaml
+      TimeoutInMinutes: 30
+
   OrganizationKmsIamStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: OrganizationStack

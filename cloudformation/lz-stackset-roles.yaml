@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template to create StackSet Administrator and Execution roles"
+
+Resources:
+  # Administrator Role - CloudFormation assumes this role to create stack instances
+  AdministrationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AWSCloudFormationStackSetAdministrationRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Policies:
+        - PolicyName: CFAdminRolePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sts:AssumeRole"
+                Resource:
+                  - "*"
+
+  # Execution Role - The Administrator role assumes this role to create resources
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: AWSCloudFormationStackSetExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt AdministrationRole.Arn
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Policies:
+        - PolicyName: CloudFormationExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sts:AssumeRole"
+                  - "securityhub:EnableOrganizationAdminAccount"
+                  - "logs:DescribeLogGroups"
+                  - "logs:DeleteLogGroup"
+                  - "securityhub:DisableOrganizationAdminAccount"
+                  - "logs:CreateLogGroup"
+                  - "logs:DeleteLogStream"
+                  - "logs:PutRetentionPolicy"
+                  - "logs:DescribeIndexPolicies"
+                  - "cloudformation:DescribeStacks"
+                  - "logs:CreateLogStream"
+                  - "organizations:EnableAWSServiceAccess"
+                  - "cloudformation:DescribeStackEvents"
+                  - "cloudformation:CreateStack"
+                  - "cloudformation:DescribeStacks"
+                  - "organizations:RegisterDelegatedAdministrator"
+                  - "organizations:DeregisterDelegatedAdministrator"
+                  - "organizations:EnableAWSServiceAccess"
+                  - "securityhub:ListOrganizationAdminAccounts"
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:DescribeKey"
+                  - "iam:GetRole"
+                  - "iam:ListRolePolicies"
+                  - "iam:DeleteRole"
+                  - "iam:CreateRole"
+                  - "iam:PutRolePolicy"
+                  - "iam:ListAttachedRolePolicies"
+                  - "iam:DeleteRolePolicy"
+                  - "iam:GetRolePolicy"
+                Resource:
+                  - "*"
+
+Outputs:
+  AdministrationRoleARN:
+    Description: Administration Role ARN
+    Value: !GetAtt AdministrationRole.Arn
+
+  ExecutionRoleARN:
+    Description: Execution Role ARN
+    Value: !GetAtt ExecutionRole.Arn

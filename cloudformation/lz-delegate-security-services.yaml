@@ -106,7 +106,7 @@ Resources:
                   - "organizations:DescribeOrganization"
                   - "organizations:ListAccounts"
                 Resource: "*"
-      RoleName: "security-services-admin-delegation-lambda"
+      RoleName: !Sub "security-services-admin-delegation-lambda-${AWS::Region}"
 
   SecurityServicesAdminDelegationLambda:
     Type: "AWS::Lambda::Function"

@@ -66,6 +66,7 @@ Complete these validation checks before starting the deployment of the SLZ.
     - Upload the below cloudformation templates into the S3 bucket. You can upload the files to the root of the bucket, or specify a prefix if templates are to be in a folder.
         - lz-organization.json
         - lz-organization-root-id.yaml
+        - lz-stackset-roles.yaml
         - lz-organization-kms-iam.json
         - lz-organization-service-access.yaml
         - lz-organization-guardrails.json
@@ -160,14 +161,17 @@ Key Policy
 6. Create Cloudformation Stackset to configure delegation of security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
     - Deployment Region: ap-southeast-5
     - Create new CloudFormation Stackset
-    - Permissions: Service-managed Permissions
+    - Permissions: Self-Managed Permissions
+        - IAMExecutionRole : AWSCloudFormationStackSetExecutionRole
     - Template: "lz-delegate-security-services.yaml"
     - StackSetName: lz-delegate-security-services
-    - Parameters: Set the DelegatedSecurityAdminAccount parameter to the AWS Control Tower audit account.
+    - Parameters: Set the Security Audit Admin Account parameter to the AWS Control Tower audit account.
     - Execution configuration: "Inactive"
     - Add stacks to stack set: "Deploy new stacks"
-    - Set Deployment Targets: Deploy to organizational units (OUs), specify the root OU-ID. Set Account filter to "Intersection", and account number is the management account id.
-    - Specify Regions: ap-southeast-5, us-east-1          
+    - Accounts - Deploy stacks in accounts,
+        - Account numbers : Management Account Number
+    - Specify Regions: ap-southeast-5, us-east-1  
+    - Leave other options as default        
 
 7. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies".
 
