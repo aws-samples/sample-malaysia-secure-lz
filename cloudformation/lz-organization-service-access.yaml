@@ -16,6 +16,7 @@ Metadata:
           - SecurityHubEnable
           - DetectiveEnable
           - FirewallManagerEnable
+          - IPAMEnable
           - IAMAccessAnalyzerEnable
           - IAMEnable
           - CloudFormationEnable
@@ -33,6 +34,8 @@ Metadata:
         default: "Inspector"
       FirewallManagerEnable:
         default: "Firewall Manager"
+      IPAMEnable:
+        default: "IPAM"
       IAMAccessAnalyzerEnable:
         default: "IAM Access Analyzer"
       IAMEnable:
@@ -69,6 +72,11 @@ Parameters:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable Firewall Manager for centralized network management."
+    Type: String
+  IPAMEnable:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable IPAM for centralized IP Address management."
     Type: String
   IAMAccessAnalyzerEnable:
     AllowedValues: ["true", "false"]
@@ -179,7 +187,10 @@ Resources:
                           set_trusted_access('inspector2.amazonaws.com')
 
                       if event['ResourceProperties']['FirewallManager'] == 'true':
-                          set_trusted_access('fms.amazonaws.com')                          
+                          set_trusted_access('fms.amazonaws.com') 
+
+                      if event['ResourceProperties']['IPAM'] == 'true':
+                          set_trusted_access('ipam.amazonaws.com')                              
                                             
                       if event['ResourceProperties']['IAMAccessAnalyzer'] == 'true':
                           set_trusted_access('access-analyzer.amazonaws.com')
@@ -257,6 +268,7 @@ Resources:
       Inspector: !Ref InspectorEnable
       Detective: !Ref DetectiveEnable
       FirewallManager: !Ref FirewallManagerEnable
+      IPAM: !Ref IPAMEnable
       IAMAccessAnalyzer: !Ref IAMAccessAnalyzerEnable
       IAM: !Ref IAMEnable
       CloudFormation: !Ref CloudFormationEnable

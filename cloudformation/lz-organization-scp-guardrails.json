@@ -192,13 +192,14 @@
                             "Resource": "*",
                             "Effect": "Deny",
                             "Condition": {
-                                "StringEquals": {
+                                "StringNotEquals": {
+                                    "aws:PrincipalTag/identity-perimeter-exception": "true"
+                                },
+                                "ForAnyValue:StringNotEquals": {
                                     "aws:RequestedRegion": "us-east-1"
                                 },
-                                "StringNotLike": {
-                                    "aws:PrincipalArn": [
-                                        "arn:aws:iam::*:role/AWSControlTowerExecution"
-                                    ]
+                                "ArnLike": {
+                                    "aws:PrincipalArn": "arn:aws:iam::*:role/AWSControlTowerExecution"
                                 }
                             }
                         },

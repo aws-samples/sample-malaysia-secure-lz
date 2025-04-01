@@ -27,6 +27,7 @@ Metadata:
           - EnableInspector
           - EnableDetective
           - EnableFirewallManager
+          - EnableIPAM
           - EnableIAMAccessAnalyzer
           - EnableIAM
           - EnableCloudFormation
@@ -81,6 +82,12 @@ Parameters:
   EnableFirewallManager:
     Type: String
     Description: Enable trusted access for Firewall Manager
+    Default: "true"
+    AllowedValues: ["true", "false"]
+
+  EnableIPAM:
+    Type: String
+    Description: Enable trusted access for IPAM
     Default: "true"
     AllowedValues: ["true", "false"]
 
@@ -141,6 +148,7 @@ Resources:
         InspectorEnable: !Ref EnableInspector
         DetectiveEnable: !Ref EnableDetective
         FirewallManagerEnable: !Ref EnableFirewallManager
+        IPAMEnable: !Ref EnableIPAM
         IAMAccessAnalyzerEnable: !Ref EnableIAMAccessAnalyzer
         IAMEnable: !Ref EnableIAM
         CloudFormationEnable: !Ref EnableCloudFormation
