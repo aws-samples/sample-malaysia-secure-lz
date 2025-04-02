@@ -62,6 +62,7 @@ Resources:
                   - "cloudformation:DescribeStackEvents"
                   - "cloudformation:CreateStack"
                   - "cloudformation:DescribeStacks"
+                  - "cloudformation:DeleteStack"
                   - "organizations:RegisterDelegatedAdministrator"
                   - "organizations:DeregisterDelegatedAdministrator"
                   - "organizations:EnableAWSServiceAccess"
