@@ -14,8 +14,6 @@ Resources:
             Principal:
               Service: cloudformation.amazonaws.com
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
       Policies:
         - PolicyName: CFAdminRolePolicy
           PolicyDocument:
@@ -39,8 +37,6 @@ Resources:
             Principal:
               AWS: !GetAtt AdministrationRole.Arn
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AdministratorAccess
       Policies:
         - PolicyName: CloudFormationExecutionPolicy
           PolicyDocument:
@@ -48,6 +44,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                  - "iam:PassRole"
                   - "sts:AssumeRole"
                   - "securityhub:EnableOrganizationAdminAccount"
                   - "logs:DescribeLogGroups"
@@ -58,7 +55,9 @@ Resources:
                   - "logs:PutRetentionPolicy"
                   - "logs:DescribeIndexPolicies"
                   - "cloudformation:DescribeStacks"
+                  - "cloudformation:ListStacks"
                   - "logs:CreateLogStream"
+                  - "organizations:DescribeOrganization"
                   - "organizations:EnableAWSServiceAccess"
                   - "cloudformation:DescribeStackEvents"
                   - "cloudformation:CreateStack"
@@ -70,6 +69,7 @@ Resources:
                   - "kms:Encrypt"
                   - "kms:Decrypt"
                   - "kms:DescribeKey"
+                  - "kms:CreateGrant"
                   - "iam:GetRole"
                   - "iam:ListRolePolicies"
                   - "iam:DeleteRole"
@@ -78,6 +78,13 @@ Resources:
                   - "iam:ListAttachedRolePolicies"
                   - "iam:DeleteRolePolicy"
                   - "iam:GetRolePolicy"
+                  - "lambda:GetRuntimeManagementConfig"
+                  - "lambda:GetFunctionRecursionConfig"
+                  - "lambda:GetFunctionCodeSigningConfig"
+                  - "lambda:GetFunction"
+                  - "lambda:CreateFunction"
+                  - "lambda:DeleteFunction"
+                  - "lambda:InvokeFunction"
                 Resource:
                   - "*"
 
