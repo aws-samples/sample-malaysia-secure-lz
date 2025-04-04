@@ -195,10 +195,11 @@
                                 "StringEquals": {
                                     "aws:RequestedRegion": "us-east-1"
                                 },
+                                "StringNotEquals": {
+                                    "aws:PrincipalTag/identity-perimeter-exception": "true"
+                                },
                                 "StringNotLike": {
-                                    "aws:PrincipalArn": [
-                                        "arn:aws:iam::*:role/AWSControlTowerExecution"
-                                    ]
+                                    "aws:PrincipalArn": "arn:aws:iam::*:role/AWSControlTowerExecution"
                                 }
                             }
                         },

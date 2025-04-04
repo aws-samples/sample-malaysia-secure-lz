@@ -27,6 +27,7 @@ Metadata:
           - EnableInspector
           - EnableDetective
           - EnableFirewallManager
+          - EnableIPAM
           - EnableIAMAccessAnalyzer
           - EnableIAM
           - EnableCloudFormation
@@ -84,6 +85,12 @@ Parameters:
     Default: "true"
     AllowedValues: ["true", "false"]
 
+  EnableIPAM:
+    Type: String
+    Description: Enable trusted access for IPAM
+    Default: "true"
+    AllowedValues: ["true", "false"]
+
   EnableIAMAccessAnalyzer:
     Type: String
     Description: Enable trusted access for IAM Access Analyzer
@@ -120,6 +127,12 @@ Resources:
         OrganizationRootId: !Ref OrganizationRootId
       TimeoutInMinutes: 30
 
+  CloudFormationStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}lz-stackset-roles.yaml
+      TimeoutInMinutes: 30
+
   OrganizationKmsIamStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: OrganizationStack
@@ -141,6 +154,7 @@ Resources:
         InspectorEnable: !Ref EnableInspector
         DetectiveEnable: !Ref EnableDetective
         FirewallManagerEnable: !Ref EnableFirewallManager
+        IPAMEnable: !Ref EnableIPAM
         IAMAccessAnalyzerEnable: !Ref EnableIAMAccessAnalyzer
         IAMEnable: !Ref EnableIAM
         CloudFormationEnable: !Ref EnableCloudFormation
