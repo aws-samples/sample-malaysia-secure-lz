@@ -231,15 +231,18 @@ Key Policy
         - StackName: "lz-central-network"
 
 ## Post CloudFormation deployment configuration
-Perform these configurations in central network account
-1. Setup Firewall unmanaged rule group (Allow-Domains); set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
-```
+1. Perform these configurations in central network account
+- Login into central network account > VPC > Network Firewall
+- Setup Firewall unmanaged rule group (Your rule group tab) (Stateful, Domain List, Strict Order)
+- Rule Name: Allow-Domains
+- Domain list: ```
 .amazonaws.com
 .amazon.com
 ```
+- set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
 
-2. Create a new unmanaged stateful firewall rule group (Stateful, Strict Order, Suricata) "custom-suricata-rule-group"
-- Set Rule Group Format to Suricata
+2. Create another new unmanaged stateful firewall rule group (Stateful, Suricata format, Strict Order) 
+- Set Rule Name: "custom-suricata-rule-group"
 - Set Capacity to 10000
 - Set IP set variables
 	- "HOME_NET" to "10.25.0.0/16"
@@ -249,10 +252,18 @@ Perform these configurations in central network account
 	- "ALLOW_PORT" (80, 443)
 - Paste in the Suricata string from "firewall-suricata-rules.txt"
 
-3. Add these rules to the firewall policy (lz-central-network-StrictFirewallPolicy)
-- Managed rules: ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder
-- Unmanaged rules: Allow-Domains, custom-suricata-rule-group 
+3. Add these rules to the firewall policy
+- VPC > Network Firewall > Firewall Policies > Create firewall policy
+- Policy name: lz-central-network-StrictFirewallPolicy
+- Attached Stateful rule group, select `Allow-Domains` and `custom-suricata-rule-group` rule group
+- Go back to Network Firewall rule group > AWS managed rule group > Add rule group to policy
+- Select `lz-central-network-StrictFirewallPolicy` firewall policy
+- Choose these rules: ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder
+- Add rule groups to policy
+- Go back to Firewall Policies > click on `lz-central-network-StrictFirewallPolicy` > Stateful rule groups  > Edit Priority
 - Priority sequence: Allow-Domains, ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder, custom-suricata-rule-group
+
+!!! Question: Do i need to create Firewall first? then associate it with the created policy?
 
 4. Set route to Firewall Endpoints in Route Tables
 - NetworkInspection-Pub-A: 10.0.0.0/8 to firewall endpoint for that AZ-A
@@ -308,21 +319,13 @@ Perform these configurations in central network account
         - [Macie.1] Amazon Macie should be enabled
         - [Macie.2] Macie automated sensitive data discovery should be enabled
     - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources. WORKAROUND: The above central configuration has to be done manually.
+
 6. In the "Audit" account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
-```
-{
-  "source": ["aws.securityhub"],
-  "detail-type": ["Security Hub Findings - Imported"],
-  "detail": {
-    "findings": {
-            "ProductArn": ["arn:aws:securityhub:ap-southeast-1::product/aws/guardduty", "arn:aws:securityhub:ap-southeast-1::product/aws/securityhub","arn:aws:securityhub:ap-southeast-5::product/aws/guardduty", "arn:aws:securityhub:ap-southeast-5::product/aws/securityhub"],
-            "Severity": {
-                "Label": ["CRITICAL", "HIGH"]
-            }
-        }
-  }
-}
-```
+- Deployment Region: ap-southeast-5
+- CloudFormation script: "lz-audit-guardduty-notifications.yaml"
+- StackName: "lz-audit-guardduty-notifications"
+- Parameter: 
+    - EmailAddresses: Comma-delimited list of email addresses to subscribe to the SNS topic
 
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
 1. Register SharedServices account as delegated administrator for Systems Manager Quick Setup. Go to AWS Systems Manager console in management account, choose Quick Setup and Settings, enter the SharedServices account for the delegated administrator. https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-register-delegated-administrator.html
