@@ -112,6 +112,20 @@
                             }
                         },
                         {
+                            "Sid": "DenyPublicOpenSearchDomains",
+                            "Effect": "Deny",
+                            "Action": [
+                                "es:CreateDomain",
+                                "es:UpdateDomainConfig"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "Bool": {
+                                    "es:VPCEnabled": "false"
+                                }
+                            }
+                        },                        
+                        {
                             "Effect": "Deny",
                             "Action": [
                                 "ec2:DisableEbsEncryptionByDefault"
