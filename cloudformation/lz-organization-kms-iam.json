@@ -6,7 +6,7 @@
             "Type": "String",
             "Description": "ARN of IAM user/role that will administer the KMS keys"
         },
-        "OrganizationID": {
+        "OrganizationId": {
             "Type": "String",
             "Default": "o-",
             "Description": "Your AWS Organization ID (starts with O-)"
@@ -73,8 +73,8 @@
                         "Value": "AWS Backup Service Role"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "AWS Backup"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -108,8 +108,8 @@
                         "Value": "SSM and CloudWatch Agent Access"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "EC2"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -191,6 +191,10 @@
                     {
                         "Key": "Purpose",
                         "Value": "CloudWatch Logs Encryption"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -280,7 +284,7 @@
                             "Condition": {
                                 "StringEquals": {
                                     "aws:PrincipalOrgID": {
-                                        "Ref": "OrganizationID"
+                                        "Ref": "OrganizationId"
                                     }
                                 }
                             }
@@ -291,6 +295,10 @@
                     {
                         "Key": "Purpose",
                         "Value": "Control Tower Backup Encryption"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
