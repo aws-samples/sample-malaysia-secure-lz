@@ -40,7 +40,7 @@ alert udp any any -> any 53 (msg:"SURICATA UDP port 53 but not DNS"; flow:to_ser
 
 # Silently (do not log) allow AWS public service endpoints that we have not setup VPC endpoints for yet
 # VPC endpoints are highly encouraged. They reduce NFW data processing costs and allow for additional security features like VPC endpoint policies.
-pass tls $HOME_NET any -> $EXTERNAL_NET any (tls.sni; dotprefix; content:"amazonaws.com"; nocase; endswith; flow:to_server, established; sid:193711)
+pass tls $HOME_NET any -> $EXTERNAL_NET any (tls.sni; dotprefix; content:"amazonaws.com"; nocase; endswith; flow:to_server, established; sid:193711;)
 #pass tls $HOME_NET any -> $EXTERNAL_NET any (tls.sni; content:"ec2messages."; startswith; nocase; content:".amazonaws.com"; endswith; nocase; flow:to_server; sid:20231181;)
 #pass tls $HOME_NET any -> $EXTERNAL_NET any (tls.sni; content:"ssm."; startswith; nocase; content:".amazonaws.com"; endswith; nocase; flow:to_server; sid:2023116132;)
 #pass tls $HOME_NET any -> $EXTERNAL_NET any (tls.sni; content:"ssmmessages."; startswith; nocase; content:".amazonaws.com"; endswith; nocase; flow:to_server; sid:2021110133;)
