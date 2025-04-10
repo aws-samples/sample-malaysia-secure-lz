@@ -148,6 +148,9 @@ Resources:
                   - "ram:EnableSharingWithAwsOrganization"
                 Resource: "*"
       RoleName: "organization-service-trusted-access-lambda"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   OrganizationServiceTrustedAccessLambda:
     Type: "AWS::Lambda::Function"
@@ -248,6 +251,9 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   OrganizationServiceTrustedAccessLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -259,6 +265,9 @@ Resources:
         {
           "Fn::Sub": "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/cloudwatch-logs-key",
         }
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   OrganizationServiceTrustedAccess:
     Type: "Custom::OrganizationServiceTrustedAccess"
