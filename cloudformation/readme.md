@@ -251,11 +251,12 @@ Key Policy
 - Login into central network account > VPC > Network Firewall
 - Setup Firewall unmanaged rule group (Your rule group tab) (Stateful, Domain List, Strict Order)
 - Rule Name: Allow-Domains
-- Domain list: ```
+- Domain list: 
+```
 .amazonaws.com
 .amazon.com
 ```
-- set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
+- Set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
 
 2. Create a new unmanaged stateful firewall rule group (Stateful, Suricata format, Strict Order) 
 - Set Rule Name: "custom-suricata-rule-group"
