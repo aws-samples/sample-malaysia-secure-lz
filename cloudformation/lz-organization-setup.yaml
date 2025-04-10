@@ -140,7 +140,7 @@ Resources:
       TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}lz-organization-kms-iam.json
       Parameters:
         KeyAdministratorArn: !Ref KeyAdministratorArn
-        OrganizationId: !Ref OrganizationID
+        OrganizationId: !Ref OrganizationId
       TimeoutInMinutes: 30
 
   OrganizationServiceAccessStack:
