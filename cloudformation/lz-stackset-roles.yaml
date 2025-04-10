@@ -57,6 +57,7 @@ Resources:
                   - "logs:DeleteLogStream"
                   - "logs:PutRetentionPolicy"
                   - "logs:DescribeIndexPolicies"
+                  - "logs:TagResource"
                   - "cloudformation:DescribeStacks"
                   - "cloudformation:ListStacks"
                   - "logs:CreateLogStream"
@@ -74,6 +75,7 @@ Resources:
                   - "kms:Decrypt"
                   - "kms:DescribeKey"
                   - "kms:CreateGrant"
+                  - "kms:TagResource"
                   - "iam:GetRole"
                   - "iam:ListRolePolicies"
                   - "iam:DeleteRole"
@@ -82,6 +84,8 @@ Resources:
                   - "iam:ListAttachedRolePolicies"
                   - "iam:DeleteRolePolicy"
                   - "iam:GetRolePolicy"
+                  - "iam:TagPolicy"
+                  - "iam:TagRole"
                   - "lambda:GetRuntimeManagementConfig"
                   - "lambda:GetFunctionRecursionConfig"
                   - "lambda:GetFunctionCodeSigningConfig"
@@ -89,6 +93,8 @@ Resources:
                   - "lambda:CreateFunction"
                   - "lambda:DeleteFunction"
                   - "lambda:InvokeFunction"
+                  - "lambda:TagResource"
+                  - "lambda:UntagResource"
                 Resource:
                   - "*"
       Tags:
