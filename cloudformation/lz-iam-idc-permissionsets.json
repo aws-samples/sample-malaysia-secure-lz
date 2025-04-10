@@ -36,8 +36,8 @@
                         "Value": "Security Control"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "IAM"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -60,8 +60,8 @@
                         "Value": "Security Control"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "IAM"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -90,12 +90,36 @@
                         "Value": "Security Control"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "IAM"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
-        }
+        },
+        "SLZAdministratorAccess": {
+            "Type": "AWS::SSO::PermissionSet",
+            "Properties": {
+                "InstanceArn": {
+                    "Ref": "SSOInstanceArn"
+                },
+                "Name": "SLZAdministratorAccess",
+                "Description": "Administrator Access Permission Set for SLZ",
+                "ManagedPolicies": [
+                    "arn:aws:iam::aws:policy/AdministratorAccess"
+                ],
+                "SessionDuration": "PT1H",
+                "Tags": [
+                    {
+                        "Key": "Purpose",
+                        "Value": "Security Control"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
+                    }
+                ]
+            }
+        },
     },
     "Outputs": {
         
