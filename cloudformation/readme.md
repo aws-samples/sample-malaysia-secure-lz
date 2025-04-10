@@ -175,7 +175,7 @@ Key Policy
 
 7. Enable Resource Control Policies. Go to AWS Organizations --> Policies, and enable "Resource Control Policies".
 
-8. Enable Declarative Policies for EC2. Go to AWS Organizations --> Policies, and enable "eclarative Policies for EC2".
+8. Enable Declarative Policies for EC2. Go to AWS Organizations --> Policies, and enable "Declarative Policies for EC2".
 
 9. Configure AWS Organization Service Control Policies (SCPs) with baseline, data-protection guardrails, approved services guardrails and Resource Control Policies (RCPs). Ensure that Resource Control Policies is enabled at AWS Organization in management account before deploying RCPs. (Refer to previous steps) 
     - Deployment Region: Malaysia ap-southeast-5
@@ -226,6 +226,7 @@ Key Policy
 
 | Permission Set Role | IAM Permissions | Description |
 | ------------ | ------------ | ------------ |
+| SLZAdministratorAccess | AdministratorAccess | Used by Cloud Platform Administrator team to work in accounts. |
 | SLZProductionSupportAccess | PowerUserAccess | Used by Production Support team to work in production accounts. |
 | SLZDeveloperAccess | ReadOnlyAccess, AmazonQDeveloperAccess, AWSCodeBuildDeveloperAccess, AmazonEC2FullAccess, AmazonS3FullAccess, AmazonDynamoDBFullAccess, AWSLambda_FullAccess, AmazonRDSFullAccess. AmazonSageMakerFullAccess, AmazonCloudWatchEvidentlyFullAccess | Used by Developers to work productively in development accounts. |
 | SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
