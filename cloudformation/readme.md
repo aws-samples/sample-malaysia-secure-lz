@@ -256,7 +256,7 @@ Key Policy
 ```
 - set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
 
-2. Create another new unmanaged stateful firewall rule group (Stateful, Suricata format, Strict Order) 
+2. Create a new unmanaged stateful firewall rule group (Stateful, Suricata format, Strict Order) 
 - Set Rule Name: "custom-suricata-rule-group"
 - Set Capacity to 10000
 - Set IP set variables
@@ -265,7 +265,7 @@ Key Policy
 - Set Port set variables
 	- "ALLOW_ON_PREM_PORT" (22, 53, 123, 80, 443)
 	- "ALLOW_PORT" (80, 443)
-- Paste in the Suricata string from "firewall-suricata-rules.txt"
+- Paste in the Suricata string from "network/firewall-suricata-rules.txt"
 
 3. Add these rules to the firewall policy
 - VPC > Network Firewall > Firewall Policies > Create firewall policy
@@ -277,8 +277,6 @@ Key Policy
 - Add rule groups to policy
 - Go back to Firewall Policies > click on `lz-central-network-StrictFirewallPolicy` > Stateful rule groups  > Edit Priority
 - Priority sequence: Allow-Domains, ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder, custom-suricata-rule-group
-
-!!! Question: Do i need to create Firewall first? then associate it with the created policy?
 
 4. Set route to Firewall Endpoints in Route Tables
 - NetworkInspection-Pub-A: 10.0.0.0/8 to firewall endpoint for that AZ-A
