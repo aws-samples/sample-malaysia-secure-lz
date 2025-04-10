@@ -248,8 +248,8 @@
                         "Value": "Security Control"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "IAM"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -291,7 +291,13 @@
                 },
                 "TargetIds": {
                     "Ref": "TargetRootOrgIdforEC2Settings"
-                }
+                },
+                "Tags": [
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
+                    }
+                ]
             }
         }
     },
