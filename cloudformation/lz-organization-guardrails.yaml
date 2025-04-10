@@ -49,7 +49,7 @@ Parameters:
     Type: CommaDelimitedList
     Description: ID of the Root Organization to attach the EC2 policy (starts with 'r-')
 
-  MyOrganizationId:
+  OrganizationId:
     Type: String
     Default: o-
     Description: ID of the AWS Organization (starts with 'o-')
@@ -88,7 +88,7 @@ Resources:
       Parameters:
         BaselineResourceGuardrailPolicyName: !Ref BaselineResourceGuardrailPolicyName
         PolicyDescription: !Ref BaselineResourceGuardrailPolicyDescription
-        MyOrganizationId: !Ref MyOrganizationId
+        OrganizationId: !Ref OrganizationId
         TargetOrganizationalUnitIds:
           !Join [",", !Ref TargetOrganizationalUnitIds]
       TimeoutInMinutes: 30
