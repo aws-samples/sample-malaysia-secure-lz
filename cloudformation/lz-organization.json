@@ -70,6 +70,10 @@
                     {
                         "Key": "Environment",
                         "Value": "Production"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -87,6 +91,10 @@
                     {
                         "Key": "Environment",
                         "Value": "Production"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -104,6 +112,10 @@
                     {
                         "Key": "Environment",
                         "Value": "NonProduction"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -121,6 +133,10 @@
                     {
                         "Key": "Environment",
                         "Value": "Production"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -138,6 +154,10 @@
                     {
                         "Key": "Environment",
                         "Value": "Production"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -154,7 +174,11 @@
                 "Tags": [
                     {
                         "Key": "Environment",
-                        "Value": "Production"
+                        "Value": "Sandbox"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -171,7 +195,11 @@
                 "Tags": [
                     {
                         "Key": "Environment",
-                        "Value": "Production"
+                        "Value": "Suspended"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
