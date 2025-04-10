@@ -1,0 +1,12 @@
+*.ru
+*.top
+*.xyz
+*.cyou
+*.pw
+*.ws
+*.gq
+*.surf
+*.cf
+*.ml
+*.zip
+*.info
