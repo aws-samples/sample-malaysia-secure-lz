@@ -193,8 +193,8 @@
                         "Value": "Security Control"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "IAM"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
