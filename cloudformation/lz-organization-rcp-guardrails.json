@@ -12,7 +12,7 @@
             "Default": "RCP to ensure TLS connection for S3",
             "Description": "Description for the Resource Control Policy"
         },
-        "MyOrganizationId": {
+        "OrganizationId": {
             "Type": "String",
             "Default": "o-",
             "Description": "ID of the AWS Organization (starts with 'o-')"
@@ -42,7 +42,7 @@
                             "Condition": {
                                 "StringNotEqualsIfExists": {
                                     "aws:SourceOrgID": {
-                                        "Ref": "MyOrganizationId"
+                                        "Ref": "OrganizationId"
                                     }
                                 },
                                 "Bool": {
@@ -82,8 +82,8 @@
                         "Value": "Security Control"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "IAM"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
