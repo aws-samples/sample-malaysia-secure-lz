@@ -24,6 +24,9 @@ Resources:
                   - "sts:AssumeRole"
                 Resource:
                   - "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   # Execution Role - The Administrator role assumes this role to create resources
   ExecutionRole:
@@ -88,6 +91,9 @@ Resources:
                   - "lambda:InvokeFunction"
                 Resource:
                   - "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
 Outputs:
   AdministrationRoleARN:
