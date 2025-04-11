@@ -129,6 +129,9 @@ Resources:
             Action: 
               - "kms:*"
             Resource: "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   GuardDutyCloudWatchEncryptionKeyAlias:
     Type: AWS::KMS::Alias
@@ -171,6 +174,9 @@ Resources:
                   - "sts:GetCallerIdentity"
                 Resource: "*"
       RoleName: "guardduty-configuration-lambda"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   GuardDutyConfigurationLambda:
     Type: "AWS::Lambda::Function"
@@ -265,6 +271,9 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   GuardDutyConfigurationLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -273,6 +282,9 @@ Resources:
     Properties:
       RetentionInDays: 14
       KmsKeyId: !GetAtt GuardDutyCloudWatchEncryptionKey.Arn
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   GuardDutyConfiguration:
     Type: "Custom::GuardDutyConfiguration"
