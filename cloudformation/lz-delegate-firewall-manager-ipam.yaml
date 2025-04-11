@@ -119,6 +119,9 @@ Resources:
                     "arn:aws:iam::*:role/aws-service-role/ipam.amazonaws.com/*",
                   ]
       RoleName: "admin-delegation-lambda"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   AdminDelegationLambda:
     Type: "AWS::Lambda::Function"
@@ -239,6 +242,9 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   LogGroupKey:
     Type: "AWS::KMS::Key"
@@ -291,6 +297,9 @@ Resources:
             Action:
               - "kms:*"
             Resource: "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   AdminDelegationLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -300,6 +309,9 @@ Resources:
       RetentionInDays: 14
       KmsKeyId: !GetAtt LogGroupKey.Arn
       LogGroupName: "/aws/lambda/admin-delegation-update-log"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   AdminDelegation:
     Type: "Custom::AdminDelegation"
