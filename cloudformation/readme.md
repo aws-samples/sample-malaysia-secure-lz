@@ -202,18 +202,23 @@ Key Policy
     - Template: lz-account-baseline.yaml
     - StackSetName: "lz-account-baseline"
     - Parameters: Set the EbsDefaultEncryptionKeyAdministratorArn parameter to the permitted IAM Admin Role.
+    - Managed execution: "Inactive"
     - Specify Regions: ap-southeast-5, us-east-1
     - Deployment Configuration: "Deploy to Organization"
+        - Maximum concurrent accounts: 3 (adjustable, this value "Failure Tolerance" + 1)
+        - Failure tolerance: 0 (???)
+        - Region concurrency: Sequential
+        - Concurrency mode: Strict failure tolerance
 
 
 11. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts. Do not enable backup.
 
 12. Enable IAM Access Analyzer in the management account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
     - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-audit-access-analyzer.yaml"
+    - CloudFormation script: "lz-audit-access-analyzer.json"
     - StackName: "lz-audit-access-analyzer"
     - Parameter: 
-        - AnalyzerType: ACCOUNT
+        - AnalyzerType: ORGANIZATION
 
 13. Configure IAM Identity Center (IDC). IDC is used for all of the organization users to access the AWS environment for a single-sign-on experience.
     - Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
@@ -314,14 +319,7 @@ Key Policy
     - StackName: "lz-audit-guardduty"
     - Add all the member accounts to the GuardDuty Protection Plan. Go to "GuardDuty" --> Accounts in delegated administration account for security. Select "Add Member" under "Actions"
 
-4. Enable IAM Access Analyzer for organization to identify unused IAM resources and external access to your organization's resources i.e. S3, IAM Roles, KMS Keys. IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer' must be created in the organization management account before running this CloudFormation. 
-- Deployment Region: Malaysia ap-southeast-5
-- CloudFormation script: "lz-audit-access-analyzer.yaml"
-- StackName: "lz-audit-access-analyzer"
-- Parameter: 
-    - AnalyzerType: ORGANIZATION
-
-5. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
+4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
         - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
@@ -335,7 +333,7 @@ Key Policy
         - [Macie.2] Macie automated sensitive data discovery should be enabled
     - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources. WORKAROUND: The above central configuration has to be done manually.
 
-6. In the "Audit" account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
+5. In the "Audit" account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
 - Deployment Region: ap-southeast-5
 - CloudFormation script: "lz-audit-guardduty-notifications.yaml"
 - StackName: "lz-audit-guardduty-notifications"
