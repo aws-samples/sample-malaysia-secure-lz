@@ -107,6 +107,9 @@ Resources:
                   - "organizations:ListAccounts"
                 Resource: "*"
       RoleName: !Sub "security-services-admin-delegation-lambda-${AWS::Region}"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   SecurityServicesAdminDelegationLambda:
     Type: "AWS::Lambda::Function"
@@ -204,6 +207,9 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   SecurityServicesAdminDelegationLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -211,6 +217,9 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   SecurityServicesAdminDelegation:
     Type: "Custom::SecurityServicesAdminDelegation"
