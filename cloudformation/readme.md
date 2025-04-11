@@ -22,7 +22,7 @@ Feature Components
     - BACKLOG: Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
     - BACKLOG: Inspector, Detective, Firewall Manager (pending availability in region)
 4. IAM: Control Tower IAM Identity Center with identity federation to organization's Identity Provider (IdP). 
-    - IAM Access Analyzer set Zone of Trust to "Organization" 
+    - IAM Access Analyzer with Zone of Trust to "Organization" 
     - Organization Central Root management
 5. Network: central network account, with ANFW and Route53 DNS Firewall, TGW and centralized VPC endpoints
     - VPC created subnets (app-private, db-private, public) across 3 availability zones.
@@ -218,7 +218,7 @@ Key Policy
     - CloudFormation script: "lz-audit-access-analyzer.json"
     - StackName: "lz-audit-access-analyzer"
     - Parameter: 
-        - AnalyzerType: ORGANIZATION
+        - AnalyzerType: ACCOUNT
 
 13. Configure IAM Identity Center (IDC). IDC is used for all of the organization users to access the AWS environment for a single-sign-on experience.
     - Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
@@ -308,7 +308,9 @@ Key Policy
     - Deployment Region: Malaysia ap-southeast-5, N. Virgina us-east-1
     - CloudFormation script: "lz-audit-securityhub.json"
     - StackName: "lz-organization-securityhub"
+
 2. Login to the "Audit" account which is delegated security administration for the Control Tower landing zone.
+
 3. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts.
     - S3 Protection
     - Runtime Monitoring
@@ -339,6 +341,13 @@ Key Policy
 - StackName: "lz-audit-guardduty-notifications"
 - Parameter: 
     - EmailAddresses: Comma-delimited list of email addresses to subscribe to the SNS topic
+
+6. Enable IAM Access Analyzer in the *audit* account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
+    - Deployment Region: Malaysia ap-southeast-5
+    - CloudFormation script: "lz-audit-access-analyzer.json"
+    - StackName: "lz-audit-access-analyzer"
+    - Parameter: 
+        - AnalyzerType: ORGANIZATION
 
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
 1. Register SharedServices account as delegated administrator for Systems Manager Quick Setup. Go to AWS Systems Manager console in management account, choose Quick Setup and Settings, enter the SharedServices account for the delegated administrator. https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-register-delegated-administrator.html
