@@ -33,6 +33,9 @@ Resources:
     Properties:
       TopicName: guardduty-severity-alerts
       KmsMasterKeyId: alias/aws/sns
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   SNSTopicPolicy:
     Type: AWS::SNS::TopicPolicy
@@ -145,6 +148,9 @@ Resources:
       Runtime: python3.13
       Timeout: 60
       MemorySize: 128
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   SNSSubscriptionFunctionRole:
     Type: AWS::IAM::Role
@@ -175,6 +181,9 @@ Resources:
     Properties:
       LogGroupName: !Sub '/aws/lambda/${SNSSubscriptionFunction}'
       RetentionInDays: 14
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   SNSSubscriptions:
     Type: Custom::SNSSubscriptions
