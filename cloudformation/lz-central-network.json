@@ -195,6 +195,10 @@
                     {
                         "Key": "Purpose",
                         "Value": "ANFW CloudWatch Logs Encryption"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -238,6 +242,10 @@
                         "Value": {
                             "Ref": "NetworkInspectionVPCName"
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -284,6 +292,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionPubA"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -330,6 +342,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionPubB"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -376,6 +392,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionPubC"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -421,6 +441,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionA"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -466,6 +490,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionB"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -511,6 +539,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionC"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -556,6 +588,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionTgwAttachA"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -601,6 +637,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionTgwAttachB"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -646,6 +686,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspectionTgwAttachC"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -677,6 +721,10 @@
                                 ]
                             ]
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -712,6 +760,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-Pub-A"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -736,6 +788,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-Pub-B"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -760,6 +816,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-Pub-C"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -866,6 +926,10 @@
                                 ]
                             ]
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1007,6 +1071,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-A"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1021,6 +1089,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-B"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1035,6 +1107,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-C"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1157,6 +1233,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-TgwAttach-A"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1171,6 +1251,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-TgwAttach-B"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1185,6 +1269,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkInspection-TgwAttach-C"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1232,6 +1320,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpoints-A"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1246,6 +1338,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpoints-B"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1260,6 +1356,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpoints-C"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1364,6 +1464,10 @@
                         "Value": {
                             "Ref": "NetworkEndpointsVPCName"
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1409,6 +1513,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpointsA"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1454,6 +1562,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpointsB"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1499,6 +1611,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpointsC"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1648,6 +1764,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpoints-TgwAttach-A"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1662,6 +1782,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpoints-TgwAttach-B"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1676,6 +1800,10 @@
                     {
                         "Key": "Name",
                         "Value": "NetworkEndpoints-TgwAttach-C"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1744,6 +1872,10 @@
                         "Value": {
                             "Ref": "AWS::StackName"
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1794,6 +1926,10 @@
                         "Value": {
                             "Ref": "AWS::StackName"
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1848,7 +1984,13 @@
                 "KmsKeyId": {
                     "Fn::GetAtt": ["CloudWatchLogsKey", "Arn"]
                 },
-                "RetentionInDays": 14
+                "RetentionInDays": 14,
+                "Tags": [
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
+                    }
+                ]
             }
         },
         "FirewallFlowLogGroup": {
@@ -1868,7 +2010,13 @@
                 "KmsKeyId": {
                     "Fn::GetAtt": ["CloudWatchLogsKey", "Arn"]
                 },
-                "RetentionInDays": 14
+                "RetentionInDays": 14,
+                "Tags": [
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
+                    }
+                ]
             }
         },
         "NetworkInspectionVPCFlowLogGroup": {
@@ -1888,7 +2036,13 @@
                 "KmsKeyId": {
                     "Fn::GetAtt": ["CloudWatchLogsKey", "Arn"]
                 },
-                "RetentionInDays": 14
+                "RetentionInDays": 14,
+                "Tags": [
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
+                    }
+                ]
             }
         },
         "NetworkEndpointsVPCFlowLogGroup": {
@@ -1908,7 +2062,13 @@
                 "KmsKeyId": {
                     "Fn::GetAtt": ["CloudWatchLogsKey", "Arn"]
                 },
-                "RetentionInDays": 14
+                "RetentionInDays": 14,
+                "Tags": [
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
+                    }
+                ]
             }
         },
         "NetworkInspectionVPCFlowLog": {
@@ -1934,6 +2094,10 @@
                         "Value": {
                             "Ref": "AWS::StackName"
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -1961,6 +2125,10 @@
                         "Value": {
                             "Ref": "AWS::StackName"
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -2046,6 +2214,10 @@
                                 ]
                             ]
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -2082,6 +2254,10 @@
                         "Value": {
                             "Ref": "AWS::StackName"
                         }
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -2102,6 +2278,10 @@
                     {
                         "Key": "Name",
                         "Value": "TGW-Network-Main-Core"
+                    },
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
@@ -2651,6 +2831,12 @@
                         "FromPort": 443,
                         "ToPort": 443,
                         "CidrIp": "10.0.0.0/8"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
