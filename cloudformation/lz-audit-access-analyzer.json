@@ -54,8 +54,8 @@
                         "Value": "Organization Access Analysis"
                     },
                     {
-                        "Key": "Service",
-                        "Value": "IAM Access Analyzer"
+                        "Key": "CreatedBy",
+                        "Value": "SecureLandingZone"
                     }
                 ]
             }
