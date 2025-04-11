@@ -242,8 +242,8 @@ Resources:
       Tags:
         - Key: Purpose
           Value: EBS Default Encryption
-        - Key: Service
-          Value: EBS
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   EbsDefaultEncryptionKeyAlias:
     Type: AWS::KMS::Alias
@@ -302,6 +302,9 @@ Resources:
             Action:
               - "kms:*"
             Resource: "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   CloudWatchEncryptionKeyAlias:
     Type: AWS::KMS::Alias
@@ -346,6 +349,8 @@ Resources:
       Tags:
         - Key: identity-perimeter-exception
           Value: true
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
       RoleName: !Sub "ec2-data-protection-lambda-${AWS::Region}"
 
   EC2DataProtectionSecurityUpdateLambda:
@@ -413,6 +418,9 @@ Resources:
       Role: !GetAtt EC2LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   EC2DataProtectionSecurityUpdateLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -422,6 +430,9 @@ Resources:
       RetentionInDays: 14
       KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       LogGroupName: "/aws/lambda/ec2-data-protection-security-update"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   EC2DataProtectionSecurity:
     Type: "Custom::EC2DataProtectionSecurity"
@@ -481,6 +492,9 @@ Resources:
               except Exception as e:
                   logger.error(f"Error updating password policy: {str(e)}")
                   cfnresponse.send(event, context, cfnresponse.FAILED, {})
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   CustomPasswordPolicy:
     Type: Custom::SetPasswordPolicy
@@ -528,6 +542,8 @@ Resources:
       Tags:
         - Key: identity-perimeter-exception
           Value: true
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   S3PublicAccessBlockLambda:
     Type: "AWS::Lambda::Function"
@@ -600,6 +616,9 @@ Resources:
       Role: !GetAtt S3LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   S3PublicAccessBlockLambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -609,6 +628,9 @@ Resources:
       RetentionInDays: 14
       KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       LogGroupName: "/aws/lambda/s3-public-access-block-update"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   S3PublicAccessBlock:
     Type: "Custom::S3PublicAccessBlock"
