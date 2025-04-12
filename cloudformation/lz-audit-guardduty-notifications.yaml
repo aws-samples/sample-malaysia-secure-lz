@@ -74,6 +74,11 @@ Resources:
               Label:
                 - CRITICAL
                 - HIGH
+            Workflow: 
+              Status:
+                - NEW
+            RecordState: 
+                - ACTIVE
       Targets:
         - Arn: !Ref SNSTopic
           Id: GuardDutySeverityAlerts
@@ -90,8 +95,9 @@ Resources:
               createdAt: "$.detail.findings[0].CreatedAt"
               recommendation: "$.detail.findings[0].Remediation.Recommendation.Text"
               remediationUrl: "$.detail.findings[0].Remediation.Recommendation.Url"
+              productname: "$.detail.findings[0].ProductFields.aws/securityhub/ProductName"
             InputTemplate: >-
-              {"Subject": "[<severity>] Security Finding: <title>", "Message": "AWS GuardDuty Security Finding\n\n--- FINDING DETAILS ---\nSeverity: <severity>\nDescription: <description>\n\n--- AFFECTED RESOURCE ---\nAccount: <account>\nRegion: <region>\nResource Type: <resourceType>\nResource ID: <resourceId>\nDetection Time: <createdAt>\n\n--- REMEDIATION ---\nAction Required: <recommendation>\n\nRemediation Steps: <remediationUrl>\n\n--- \nAWS GuardDuty Alert System"}
+              {"Subject": "[<severity>] <productname> Security Finding: <title>", "Message": "<productname> Finding\n\n--- FINDING DETAILS ---\nSeverity: <severity>\nDescription: <description>\n\n--- AFFECTED RESOURCE ---\nAccount: <account>\nRegion: <region>\nResource Type: <resourceType>\nResource ID: <resourceId>\nDetection Time: <createdAt>\n\n--- REMEDIATION ---\nAction Required: <recommendation>\n\nRemediation Steps: <remediationUrl>\n\n--- \nAWS <productname> Alert System"}
 
   SNSSubscriptionFunction:
     Type: AWS::Lambda::Function
