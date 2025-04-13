@@ -277,7 +277,7 @@
                         "CIDR"
                     ]
                 },
-                "MapPublicIpOnLaunch": "true",
+                "MapPublicIpOnLaunch": "false",
                 "Tags": [
                     {
                         "Key": "Application",
@@ -327,7 +327,7 @@
                         "CIDR"
                     ]
                 },
-                "MapPublicIpOnLaunch": "true",
+                "MapPublicIpOnLaunch": "false",
                 "Tags": [
                     {
                         "Key": "Application",
@@ -377,7 +377,7 @@
                         "CIDR"
                     ]
                 },
-                "MapPublicIpOnLaunch": "true",
+                "MapPublicIpOnLaunch": "false",
                 "Tags": [
                     {
                         "Key": "Application",
