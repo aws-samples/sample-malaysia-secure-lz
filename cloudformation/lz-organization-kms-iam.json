@@ -16,15 +16,6 @@
             "Default": "alias/control-tower-backup-key",
             "Description": "Alias name for the Control Tower Backup KMS key"
         },
-        "EnableKeyRotation": {
-            "Type": "String",
-            "Default": "true",
-            "AllowedValues": [
-                "true",
-                "false"
-            ],
-            "Description": "Enable automatic key rotation (recommended)"
-        },
         "BackupRoleName": {
             "Type": "String",
             "Default": "AWSBackupServiceRole",
@@ -118,9 +109,7 @@
             "Type": "AWS::KMS::Key",
             "Properties": {
                 "Description": "KMS key for CloudWatch Logs encryption",
-                "EnableKeyRotation": {
-                    "Ref": "EnableKeyRotation"
-                },
+                "EnableKeyRotation": true,
                 "KeyPolicy": {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -218,9 +207,7 @@
             "Type": "AWS::KMS::Key",
             "Properties": {
                 "Description": "KMS key for Control Tower Backup encryption",
-                "EnableKeyRotation": {
-                    "Ref": "EnableKeyRotation"
-                },
+                "EnableKeyRotation": true,
                 "MultiRegion": true,
                 "KeyPolicy": {
                     "Version": "2012-10-17",
