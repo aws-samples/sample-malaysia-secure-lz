@@ -135,7 +135,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "arn:aws:logs:*:*:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
               - Effect: Allow
                 Action:
                   - "organizations:EnableAwsServiceAccess"
@@ -147,7 +147,7 @@ Resources:
                   - "sts:GetCallerIdentity"
                   - "ram:EnableSharingWithAwsOrganization"
                 Resource: "*"
-      RoleName: "organization-service-trusted-access-lambda"
+      RoleName: !Sub "organization-service-trusted-access-lambda"
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
@@ -242,7 +242,7 @@ Resources:
       Environment:
         Variables:
           LOGGING_LEVEL: !Ref LoggingLevel
-      FunctionName: "organization-service-trusted-access-update"
+      FunctionName: !Sub "organization-service-trusted-access"
       Handler: index.lambda_handler
       LoggingConfig:
         LogGroup: !Ref OrganizationServiceTrustedAccessLambdaLogGroup
@@ -251,6 +251,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      ReservedConcurrentExecutions: 1
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
