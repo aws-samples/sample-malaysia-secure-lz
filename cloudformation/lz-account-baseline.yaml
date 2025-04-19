@@ -334,7 +334,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "arn:aws:logs:*:*:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
               - Effect: Allow
                 Action:
                   - "ec2:GetEbsEncryptionByDefault"
@@ -400,11 +400,8 @@ Resources:
                   ec2_client.reset_ebs_default_kms_key_id()
                   logger.info("EC2 Data Protection and Security EBS Default Encryption reset successfully")
               except ClientError as e:
-                  if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
-                      logger.info("EC2 Data Protection and Security was already deleted or did not exist")
-                  else:
-                      logger.error(f"Error resetting EC2 Data Protection and Security configuration: {str(e)}")
-                      raise
+                  logger.error(f"Error resetting EC2 Data Protection and Security configuration: {str(e)}")
+                  raise
       Description: "Updates and deletes the account-level EC2 Data Protection and Security configuration at account level in a region."
       Environment:
         Variables:
@@ -531,7 +528,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "arn:aws:logs:*:*:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
               - Effect: Allow
                 Action:
                   - "s3:DeletePublicAccessBlock"
