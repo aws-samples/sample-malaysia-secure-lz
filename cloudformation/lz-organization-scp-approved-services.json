@@ -113,6 +113,7 @@
                                         "mq:*",
                                         "network-firewall:*",
                                         "organizations:*",
+                                        "pi:*",
                                         "quicksight:*",
                                         "ram:*",
                                         "rds:*",
