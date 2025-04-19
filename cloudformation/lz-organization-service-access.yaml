@@ -147,7 +147,7 @@ Resources:
                   - "sts:GetCallerIdentity"
                   - "ram:EnableSharingWithAwsOrganization"
                 Resource: "*"
-      RoleName: !Sub "organization-service-trusted-access-lambda"
+      RoleName: "organization-service-trusted-access-lambda"
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
@@ -242,7 +242,7 @@ Resources:
       Environment:
         Variables:
           LOGGING_LEVEL: !Ref LoggingLevel
-      FunctionName: !Sub "organization-service-trusted-access"
+      FunctionName: "organization-service-trusted-access"
       Handler: index.lambda_handler
       LoggingConfig:
         LogGroup: !Ref OrganizationServiceTrustedAccessLambdaLogGroup
