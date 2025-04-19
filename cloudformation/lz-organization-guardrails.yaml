@@ -45,15 +45,6 @@ Parameters:
     Type: CommaDelimitedList
     Description: ID of the Organizational Unit to attach the SCP and RCP policies (starts with 'ou-')
 
-  TargetRootOrgIdforEC2Settings:
-    Type: CommaDelimitedList
-    Description: ID of the Root Organization to attach the EC2 policy (starts with 'r-')
-
-  OrganizationId:
-    Type: String
-    Default: o-
-    Description: ID of the AWS Organization (starts with 'o-')
-
 Resources:
   BaselineGuardrailsStack:
     Type: AWS::CloudFormation::Stack
@@ -64,8 +55,7 @@ Resources:
         PolicyDescription: !Ref BaselineGuardrailPolicyDescription
         TargetOrganizationalUnitIds:
           !Join [",", !Ref TargetOrganizationalUnitIds]
-        TargetRootOrgIdforEC2Settings:
-          !Join [",", !Ref TargetRootOrgIdforEC2Settings]
+        TargetRootOrgIdforEC2Settings: !ImportValue "lz-organization-RootId"
       TimeoutInMinutes: 30
 
   ApprovedServicesStack:
@@ -88,7 +78,7 @@ Resources:
       Parameters:
         BaselineResourceGuardrailPolicyName: !Ref BaselineResourceGuardrailPolicyName
         PolicyDescription: !Ref BaselineResourceGuardrailPolicyDescription
-        OrganizationId: !Ref OrganizationId
+        OrganizationId: !ImportValue "lz-organization-OrganizationId"
         TargetOrganizationalUnitIds:
           !Join [",", !Ref TargetOrganizationalUnitIds]
       TimeoutInMinutes: 30
