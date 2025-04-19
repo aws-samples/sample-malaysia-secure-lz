@@ -191,8 +191,6 @@ Key Policy
         - **BaselineResourceGuardrailPolicyName**: Name for the resource guardrail policy (e.g., `my-slz-resource-guardrail`)
         - **BaselineResourceGuardrailPolicyDescription**: Description for the resource guardrail policy
         - **TargetOrganizationalUnitIds**: Comma-separated list of OU IDs to attach the policies to (e.g., `ou-abcd-1example,ou-efgh-2example`)
-        - **TargetRootOrgIdforEC2Settings**: root organization ID (e.g., `r-abcd`)
-        - **MyOrganizationId**: Your AWS Organization ID (e.g., `o-abcdefghij`)
     When executed, this template creates three child stacks in sequence, maintaining the proper order of operations required for effective policy implementation across your AWS Organization.
 
 10. Create **CloudFormation StackSet** to configure new AWS account security baseline for each member account in each home region 
