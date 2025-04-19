@@ -65,7 +65,6 @@ Complete these validation checks before starting the deployment of the SLZ.
         - Default encryption: Enabled (recommended)
     - Upload the below cloudformation templates into the S3 bucket. You can upload the files to the root of the bucket, or specify a prefix if templates are to be in a folder.
         - lz-organization.json
-        - lz-organization-root-id.yaml
         - lz-stackset-roles.yaml
         - lz-organization-kms-iam.json
         - lz-organization-service-access.yaml
@@ -156,13 +155,14 @@ Key Policy
     - Set Log configuration for S3 to 1 year for both S3 retention and S3 access logging
     - Enable IAM Identity Center (IDC) in Malaysia ap-southeast-5 region
     - Enable AWS Backup for whole of organization. Specify the new Shared Services (for backup administration) and central backup accounts. These accounts should not be enrolled under AWS Control Tower at the start.
-        - Specify the KMS key id for Control Tower Backup encryption
+        - Specify the KMS key id for Control Tower Backup encryption (alias control-tower-backup-key)
 
-6. Create Cloudformation Stackset to configure delegation of security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
+6. Create **Cloudformation StackSet** to configure delegation of security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
     - Deployment Region: ap-southeast-5
-    - Create new CloudFormation Stackset
+    - Create new **CloudFormation StackSet**
     - Permissions: Self-Managed Permissions
-        - IAMExecutionRole : AWSCloudFormationStackSetExecutionRole
+        - IAM Execution Role Name : AWSCloudFormationStackSetExecutionRole
+        - IAM admin role ARN : leave blank
     - Template: "lz-delegate-security-services.yaml"
     - StackSetName: lz-delegate-security-services
     - Parameters: Set the Security Audit Admin Account parameter to the AWS Control Tower audit account.
@@ -195,9 +195,9 @@ Key Policy
         - **MyOrganizationId**: Your AWS Organization ID (e.g., `o-abcdefghij`)
     When executed, this template creates three child stacks in sequence, maintaining the proper order of operations required for effective policy implementation across your AWS Organization.
 
-10. Create Cloudformation Stackset to configure new AWS account security baseline for each member account in each home region 
+10. Create **CloudFormation StackSet** to configure new AWS account security baseline for each member account in each home region 
     - Deployment Region: Malaysia ap-southeast-5
-    - Create new **"CloudFormation Stackset"**
+    - Create new **"CloudFormation StackSet"**
     - Permissions: Service-managed permissions
     - Template: lz-account-baseline.yaml
     - StackSetName: "lz-account-baseline"
@@ -350,19 +350,9 @@ Key Policy
         - AnalyzerType: ORGANIZATION
 
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
-1. Register SharedServices account as delegated administrator for Systems Manager Quick Setup. Go to AWS Systems Manager console in management account, choose Quick Setup and Settings, enter the SharedServices account for the delegated administrator. https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-register-delegated-administrator.html
-2. Login to the SharedServices delegated administration account for SSM.
-3. Configure SSM Quick Setup Host Management for these OUs (Workloads, Security and Infrastructure). This ensures that all EC2 instances are managed by SSM Fleet Manager.
-    - Go to AWS Systems Manager console in management account, choose Quick Setup for Host Management.
-    - Update Systems Manager (SSM) Agent every two weeks.
-    - Collect inventory from your instances every 30 minutes.
-    - Scan instances for missing patches daily.
-    - Targets section should specify these OUs (Workloads, Security and Infrastructure) and governed home region (ap-southeast-5) for host management configuration to be deployed.
-4. Configure SSM AWS Resource Explorer using Quick Setup. https://docs.aws.amazon.com/systems-manager/latest/userguide/Resource-explorer-quick-setup.html
-    - Go to AWS Systems Manager console in management account, choose Quick Setup for Resource Explorer.
-    - Set Aggregator Index Region to ap-southeast-5
-    - Targets section should specify these OUs (Workloads, Security and Infrastructure) and governed home region (ap-southeast-5) 
-5. Enable "Default Host Configuration" from SSM Fleet Manager. https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
+1. Login to each of the accounts, especially SharedServices, Workload accounts for SSM.
+2. Enable "Default Host Configuration" from SSM Fleet Manager. https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
+
 
 ## Configure AWS Backup Plan and Policies
 AWS Control Tower provides these 4 types of backup policies (hourly, daily, weekly and monthly), and each account that is under AWS Backup management will have its own Backup Vault. A Central Backup Vault "aws-controltower-central-backupvault-*" is created in the Central Backup Vault account. Resources in the member accounts need to be tagged with this one of these tags for it be include in the backup scope. https://docs.aws.amazon.com/controltower/latest/userguide/backup.html
@@ -398,7 +388,20 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 - Error description "Insufficient privileges to create a backup vault. Creating a backup vault requires backup-storage and KMS permissions."
     - Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
 
+
 ## Feature Backlog
 1. Enable AWS Inspector for all accounts.
 2. Enable AWS Firewall Manager and policies for all accounts.
-3. Test using StackSets to automatically deploy lz-new-account-baseline.yaml in new accounts
+3. Systems Manager Quick Setup - Systems Manager Quick Setup is not yet available in Malaysia ap-southeast-5 region.
+    - Register SharedServices account as delegated administrator for Systems Manager Quick Setup. Go to AWS Systems Manager console in management account, choose Quick Setup and Settings, enter the SharedServices account for the delegated administrator. https://docs.aws.amazon.com/systems-manager/latest/userguide/quick-setup-register-delegated-administrator.html
+
+    - Configure SSM Quick Setup Host Management for these OUs (Workloads, Security and Infrastructure). This ensures that all EC2 instances are managed by SSM Fleet Manager.
+        - Go to AWS Systems Manager console in management account, choose Quick Setup for Host Management.
+        - Update Systems Manager (SSM) Agent every two weeks.
+        - Collect inventory from your instances every 30 minutes.
+        - Scan instances for missing patches daily.
+        - Targets section should specify these OUs (Workloads, Security and Infrastructure) and governed home region (ap-southeast-5) for host management configuration to be deployed.
+    - Configure SSM AWS Resource Explorer using Quick Setup. https://docs.aws.amazon.com/systems-manager/latest/userguide/Resource-explorer-quick-setup.html
+        - Go to AWS Systems Manager console in management account, choose Quick Setup for Resource Explorer.
+        - Set Aggregator Index Region to ap-southeast-5
+        - Targets section should specify these OUs (Workloads, Security and Infrastructure) and governed home region (ap-southeast-5) 
