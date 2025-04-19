@@ -96,7 +96,13 @@ Resources:
                   - "lambda:TagResource"
                   - "lambda:UntagResource"
                 Resource:
-                  - "*"
+                  - !Sub "arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*"
+                  - !Sub "arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stack/*"
+                  - !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*"
+                  - !Sub "arn:${AWS::Partition}:kms:*:${AWS::AccountId}:key/*"
+                  - !Sub "arn:${AWS::Partition}:lambda:*:${AWS::AccountId}:function:*"
+                  - !Sub "arn:${AWS::Partition}:organizations:*:${AWS::AccountId}:*"
+                  - !Sub "arn:${AWS::Partition}:securityhub:*:${AWS::AccountId}:*"
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
