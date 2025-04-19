@@ -78,7 +78,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "arn:aws:logs:*:*:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
               - Effect: Allow
                 Action:
                   - "guardduty:EnableOrganizationAdminAccount"
@@ -169,11 +169,8 @@ Resources:
                   guardduty_client.disable_organization_admin_account(AdminAccountId=account_id)
                   logger.info("GuardDuty delegated security admin account reset successfully")
               except ClientError as e:
-                  if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
-                      logger.info("GuardDuty delegated security admin account was already deleted or did not exist")
-                  else:
-                      logger.error(f"Error resetting GuardDuty delegated security admin account configuration: {str(e)}")
-                      raise
+                  logger.error(f"Error resetting GuardDuty delegated security admin account configuration: {str(e)}")
+                  raise
           def set_service_organization_admin(account_id, service):
               try:
                   organizations_client.register_delegated_administrator(AccountId=account_id, ServicePrincipal=service)
@@ -189,11 +186,8 @@ Resources:
                   organizations_client.deregister_delegated_administrator(AccountId=account_id, ServicePrincipal=service)
                   logger.info(f"{service} delegated security admin account reset successfully")
               except ClientError as e:
-                  if e.response['Error']['Code'] == 'NoSuchPublicAccessBlockConfiguration':
-                      logger.info("GuardDuty delegated security admin account was already deleted or did not exist")
-                  else:
-                      logger.error(f"Error resetting GuardDuty delegated security admin account configuration: {str(e)}")
-                      raise
+                  logger.error(f"Error resetting GuardDuty delegated security admin account configuration: {str(e)}")
+                  raise
       Description: "Updates and deletes the AWS native Security Services admin delegation configuration at organization level in a region."
       Environment:
         Variables:
@@ -207,6 +201,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Runtime: python3.13
       Timeout: 60
+      ReservedConcurrentExecutions: 1
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
