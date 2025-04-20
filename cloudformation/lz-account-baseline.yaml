@@ -15,7 +15,6 @@ Metadata:
           - EbsDefaultEncryptionKeyAdministratorArn
           - EbsDefaultEncryptionKeyAliasName
           - EbsDefaultEncryptionKeyKeyDescription
-          - EnableKeyRotation
       - Label:
           default: "IAM Password Policy Configuration"
         Parameters:
@@ -43,8 +42,6 @@ Metadata:
         default: "EBS Encryption Key Alias"
       EbsDefaultEncryptionKeyKeyDescription:
         default: "EBS Encryption Key Description"
-      EnableKeyRotation:
-        default: "Enable KMS Key Rotation"
       # Password Policy Parameters
       PasswordPolicyMinLength:
         default: "Minimum Password Length"
@@ -94,14 +91,6 @@ Parameters:
     Type: String
     Default: "KMS key for EBS volume default encryption"
     Description: "Description for the EBS encryption KMS key."
-
-  EnableKeyRotation:
-    Type: String
-    Default: "true"
-    AllowedValues:
-      - "true"
-      - "false"
-    Description: "Enable automatic key rotation for KMS keys (recommended)."
 
   # Password Policy Parameters
   PasswordPolicyMinLength:
@@ -192,7 +181,7 @@ Resources:
     Type: AWS::KMS::Key
     Properties:
       Description: !Ref EbsDefaultEncryptionKeyKeyDescription
-      EnableKeyRotation: !Ref EnableKeyRotation
+      EnableKeyRotation: true
       KeyPolicy:
         Version: "2012-10-17"
         Statement:
@@ -425,7 +414,7 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
-      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       LogGroupName: "/aws/lambda/ec2-data-protection-security-update"
       Tags:
         - Key: "CreatedBy"
