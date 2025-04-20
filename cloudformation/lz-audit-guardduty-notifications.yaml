@@ -5,6 +5,9 @@ Parameters:
   EmailAddresses:
     Type: String
     Description: 'Comma-delimited list of email addresses to subscribe to the SNS topic'
+  EncryptionKeyAdministratorArn:
+    Type: String
+    Description: "ARN of IAM user/role that will administer the KMS keys."
 
 Resources:
   EventBridgeRole:
@@ -31,8 +34,8 @@ Resources:
   SNSTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: guardduty-severity-alerts
-      KmsMasterKeyId: alias/aws/sns
+      TopicName: slz-guardduty-severity-alerts
+      KmsMasterKeyId: !GetAtt SNSTopicEncryptionKey.Arn
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
@@ -51,6 +54,67 @@ Resources:
               Service: events.amazonaws.com
             Action: sns:Publish
             Resource: !Ref SNSTopic
+
+  SNSTopicEncryptionKey:
+    Type: "AWS::KMS::Key"
+    Properties:
+      Description: "SNS Topic Key"
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: "key-default-1"
+        Statement:
+          - Sid: "Allow Key Administration"
+            Effect: "Allow"
+            Principal:
+              AWS: !Ref EncryptionKeyAdministratorArn
+            Action:
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+              - "kms:GenerateDataKey"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+            Resource: "*"
+          - Sid: "Allow SNS Service"
+            Effect: "Allow"
+            Principal:
+              Service: !Sub sns.${AWS::Region}.amazonaws.com
+            Action:
+              - "kms:Decrypt*"
+              - "kms:Encrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:ReEncrypt*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                "kms:EncryptionContext:aws:sns:arn": !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:*
+          - Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - "kms:*"
+            Resource: "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
+
+  SNSTopicEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/slz-sns-topic-key
+      TargetKeyId: !Ref SNSTopicEncryptionKey
 
   EventBridgeRule:
     Type: AWS::Events::Rule
@@ -158,6 +222,67 @@ Resources:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
 
+  CloudWatchEncryptionKey:
+    Type: "AWS::KMS::Key"
+    Properties:
+      Description: "CloudWatch LogGroup Key"
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: "key-default-1"
+        Statement:
+          - Sid: "Allow Key Administration"
+            Effect: "Allow"
+            Principal:
+              AWS: !Ref EncryptionKeyAdministratorArn
+            Action:
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+              - "kms:GenerateDataKey"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+            Resource: "*"
+          - Sid: "Allow CloudWatch Logs Service"
+            Effect: "Allow"
+            Principal:
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Action:
+              - "kms:Decrypt*"
+              - "kms:Encrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:ReEncrypt*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - "kms:*"
+            Resource: "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
+
+  CloudWatchEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/slz-cloudwatch-key
+      TargetKeyId: !Ref CloudWatchEncryptionKey
+
   SNSSubscriptionFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -182,11 +307,12 @@ Resources:
       
   SNSSubscriptionFunctionLogGroup:
     Type: AWS::Logs::LogGroup
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       LogGroupName: !Sub '/aws/lambda/${SNSSubscriptionFunction}'
       RetentionInDays: 14
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
