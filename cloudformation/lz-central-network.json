@@ -14,8 +14,9 @@
         },
         "TransitGatewayResourceShareTargets": {
             "Type": "CommaDelimitedList",
-            "Description": "Principals to associate with Transit Gateway resource share (account id, arn of OU, arn of IAM, role or arn of IAM user). Recommend to use ID of the Organizational Unit to attach the policy (starts with 'ou-')",
-            "Default": "ORGANIZATION_OU_ARN"
+            "Description": "Principals to associate with Transit Gateway resource share (account id, arn of OU, arn of IAM, role or arn of IAM user). Recommend to use ID of the Organizational Unit to attach the policy (starts with 'arn:aws:organizations::ACCOUNT-ID:ou/ORGANIZATION-ID/ou-')",
+            "AllowedPattern": "arn:aws:organizations::[0-9]{12}:ou/.*",
+            "ConstraintDescription": "Must be a valid Organization Unit ARN"
         },
         "KeyAdministratorArn": {
             "Type": "String",
@@ -2831,6 +2832,12 @@
                         "FromPort": 443,
                         "ToPort": 443,
                         "CidrIp": "10.0.0.0/8"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "IpProtocol": "-1",
+                        "CidrIp": "0.0.0.0/0"
                     }
                 ],
                 "Tags": [
