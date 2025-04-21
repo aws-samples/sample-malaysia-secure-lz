@@ -16,11 +16,6 @@
             "Default": "alias/control-tower-backup-key",
             "Description": "Alias name for the Control Tower Backup KMS key"
         },
-        "BackupRoleName": {
-            "Type": "String",
-            "Default": "AWSBackupServiceRole",
-            "Description": "Name of the IAM role for AWS Backup"
-        },
         "EC2SSMRoleName": {
             "Type": "String",
             "Default": "EC2SSMCloudWatchRole",
@@ -35,41 +30,6 @@
         }
     },
     "Resources": {
-        "BackupServiceRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-                "RoleName": {
-                    "Ref": "BackupRoleName"
-                },
-                "Description": "IAM role for AWS Backup service with backup and restore permissions",
-                "AssumeRolePolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "backup.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        }
-                    ]
-                },
-                "ManagedPolicyArns": [
-                    "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup",
-                    "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores"
-                ],
-                "Tags": [
-                    {
-                        "Key": "Purpose",
-                        "Value": "AWS Backup Service Role"
-                    },
-                    {
-                        "Key": "CreatedBy",
-                        "Value": "SecureLandingZone"
-                    }
-                ]
-            }
-        },
         "EC2SSMServiceRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -351,21 +311,6 @@
                 "Name": {
                     "Fn::Sub": "${AWS::StackName}-ControlTowerBackupKeyArn"
                 }
-            }
-        },
-        "BackupRoleArn": {
-            "Description": "ARN of the AWS Backup service role",
-            "Value": {
-                "Fn::GetAtt": [
-                    "BackupServiceRole",
-                    "Arn"
-                ]
-            }
-        },
-        "BackupRoleName": {
-            "Description": "Name of the AWS Backup service role",
-            "Value": {
-                "Ref": "BackupRoleName"
             }
         },
         "EC2SSMRoleArn": {
