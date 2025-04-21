@@ -18,7 +18,8 @@ Feature Components
     - BACKLOG: VPC Flow Logs
 3. Security: Control Tower using audit account as the delegated security admin for GuardDuty, and Security Hub
     - Threat Detection: GuardDuty
-    - Compliance Monitoring: Security Hub
+    - Compliance Monitoring: Security Hub and Config
+    - Security Alert Notification: SNS Topic
     - BACKLOG: Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
     - BACKLOG: Inspector, Detective, Firewall Manager (pending availability in region)
 4. IAM: Control Tower IAM Identity Center with identity federation to organization's Identity Provider (IdP). 
@@ -29,19 +30,24 @@ Feature Components
     - Use VPC interface endpoints for privatelink access to AWS services (S3, SSM, SSMMessages, EC2, Log, KMS, Secrets Manager, ECR)
     - (optional) Customers can choose to deploy either AWS Network Firewall or their preferred network firewall e.g. Palo Alto or Fortinet as virtual appliances running as EC2 instances.
     - BACKLOG: Firewall Manager Policies (GA date unknown)
-    - WAF: Baseline WAF configuration to attach to publicly accessible resources.
-6. Backup: shared services account, and backup vault account 
+    - BACKLOG: WAF: Baseline WAF configuration to attach to publicly accessible resources.
+6. Data Protection:
+    - KMS Customer Managed Keys (KMS-CMK) 
+    - Service Control Policy - enforce data-at-rest encryption, and block public access.
+7. Backup: shared services account, and backup vault account 
     - Centrally managed using Control Tower Backup feature.
     - Backup policies (daily, weekly) configured and member accounts have local backup vaults. 
     - Backup policies move snapshots up to central backup vault at a later stage.
-7. Block Public Access at account level: IMDSv2, AMI, Snapshots, S3
+8. Block Public Access at account level: 
+    - Declarative Policies for EC2 - IMDSv2, AMI, Snapshots, 
+    - S3
     - BACKLOG: VPC BPA
-8. Compute Management: 
+9. Compute Management:
     - EC2: Default Host Configuration Management, EBS Default encryption with KMS-CMK, with SSM Quick Starts for Host Management and Resource Explorer
     - Containers: ECR has Inspector Enhanced Scanning 
     - Lambda: None
     - Aurora, RDS, EFS: enforce data-at-rest encryption with KMS-CMK
-9. Forensics: OU
+10. Forensics: OU
 
 
 ## Prerequisites:
@@ -203,8 +209,8 @@ Key Policy
     - Managed execution: "Inactive"
     - Specify Regions: ap-southeast-5, us-east-1
     - Deployment Configuration: "Deploy to Organization"
-        - Maximum concurrent accounts: 3 (adjustable, this value "Failure Tolerance" + 1)
-        - Failure tolerance: 0 (???)
+        - Maximum concurrent accounts: 3 (adjustable)
+        - Failure tolerance: 0 ("Maximum Concurrent Accounts" - 1)
         - Region concurrency: Sequential
         - Concurrency mode: Strict failure tolerance
 
