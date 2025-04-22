@@ -435,7 +435,7 @@ Resources:
     Properties:
       LogGroupName: "/aws/lambda/SetPasswordPolicyLambda"
       RetentionInDays: 14
-      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
 
   SetPasswordPolicyLambda:
     Type: AWS::Lambda::Function
@@ -612,7 +612,7 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
-      KMSKeyId: !GetAtt CloudWatchEncryptionKey.Arn
+      KmsKeyId: !GetAtt CloudWatchEncryptionKey.Arn
       LogGroupName: "/aws/lambda/s3-public-access-block-update"
       Tags:
         - Key: "CreatedBy"
