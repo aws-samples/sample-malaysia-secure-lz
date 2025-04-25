@@ -54,8 +54,8 @@ Parameters:
   KeyAdministratorArn:
     Type: String
     Description: ARN of the IAM role or user that will administer the KMS keys (format arn:aws:iam::ACCOUNT-ID:role/XXXXX)
-    AllowedPattern: "arn:aws:iam::[0-9]{12}:role/.*"
-    ConstraintDescription: "Must be a valid IAM role ARN"
+    AllowedPattern: "arn:aws:iam::[0-9]{12}:(role|user)/.*"
+    ConstraintDescription: "Must be a valid IAM role or user ARN"
 
   EnableGuardDuty:
     Type: String

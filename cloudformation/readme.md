@@ -74,14 +74,14 @@ Complete these validation checks before starting the deployment of the SLZ.
         - lz-stackset-roles.yaml
         - lz-organization-kms-iam.json
         - lz-organization-service-access.yaml
-        - lz-organization-guardrails.json
+        - lz-organization-guardrails.yaml
         - lz-organization-scp-approved-services.json
         - lz-organization-rcp-guardrails.json
 
 
 ## Installation Steps
 1. *HOME-REGION* is Malaysia (ap-southeast-5).
-2. Create KMS Customer Managed Key (Symmetric, for Encrypt and Decrypt, single-region), KMS-CMK, for AWS Control Tower. This will be referenced during the setup of the Control Tower service in Step 7.
+2. Create KMS Customer Managed Key (Symmetric, for Encrypt and Decrypt, single-region), KMS-CMK, for AWS Control Tower. This will be referenced during the setup of the Control Tower service in Step 3.
     - Region: Malaysia ap-southeast-5
     - Key Type: Symmetric Key
     - Key Usage: Encrypt and Decrypt.
@@ -144,6 +144,7 @@ Key Policy
     - Parameters: Set the OrganizationRootId parameter to the AWS Organization Root OU.
                   Set the KeyAdministratorArn parameter to the permitted IAM Admin Role.
                   Set the OrganizationId parameter to the AWS Organization ID.
+                  Set the S3BucketName parameter to the bucket name created in Prerequisites section Step no.13
     - NOTE: Do not change the stack-name to avoid conflict with following deployment steps.                  
 3. For the Control Tower Backup key, ensure to create a new replica key in us-east-1 and any other additional governed region. Go to KMS console, select the "control-tower-backup-key", go to "Regionality" and "Create new replica keys" for us-east-1.
 4. Enable AWS Organization Central Root Management. Go to IAM console, select "Account settings", and go to the section "Centralized root access for member accounts". 
