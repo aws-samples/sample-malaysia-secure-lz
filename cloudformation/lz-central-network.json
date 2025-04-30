@@ -2165,18 +2165,8 @@
                                         "logs:DescribeLogGroups",
                                         "logs:DescribeLogStreams"
                                     ],
-                                    "Resource": "*",
-                                    "Condition": {
-                                        "StringEquals": {
-                                            "aws:SourceAccount": {
-                                                "Fn::Sub": "${AWS::AccountId}"
-                                            }
-                                        },
-                                        "ArnLike": {
-                                            "awsSourceArn": {
-                                                "Fn::Sub": "arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc-flow-log/*"
-                                            }
-                                        }
+                                    "Resource": {
+                                        "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
                                     }
                                 }
                             ]
@@ -2823,6 +2813,7 @@
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "GroupDescription": "Allow HTTPS traffic from connected internal VPCs",
+                "GroupName": "sg-vpcendpoints",
                 "VpcId": {
                     "Ref": "NetworkEndpointsVPC"
                 },
