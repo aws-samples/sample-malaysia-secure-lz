@@ -133,6 +133,8 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub https://s3.amazonaws.com/${S3BucketName}/${S3KeyPrefix}lz-stackset-roles.yaml
+      Parameters:
+        OrganizationId: !Ref OrganizationId
       TimeoutInMinutes: 30
 
   OrganizationKmsIamStack:
