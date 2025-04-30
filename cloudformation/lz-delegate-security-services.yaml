@@ -50,6 +50,13 @@ Parameters:
     Default: "true"
     Description: "Enable IAM Access Analyzer to identify unauthorized external sharing of resources."
     Type: String
+  EncryptionKeyAdministratorArn:
+    Type: String
+    Description: ARN of IAM user/role that will administer the KMS key
+  SecurityServicesAdminCloudWatchEncryptionKeyAliasName:
+    Type: String
+    Default: alias/securityservicesadmin-log-group-encryption
+    Description: Alias name for the KMS key (prefix with 'alias/', cannot use 'alias/aws' which is reserved for AWS managed keys)
   LoggingLevel:
     AllowedValues: ["CRITICAL", "DEBUG", "ERROR", "INFO", "WARNING"]
     Default: "INFO"
@@ -212,9 +219,77 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       RetentionInDays: 14
+      KmsKeyId: !GetAtt SecurityServicesAdminCloudWatchEncryptionKey.Arn
+      LogGroupName: "/aws/lambda/security-services-admin-delegation-update-log"
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
+
+  SecurityServicesAdminCloudWatchEncryptionKey:
+    Type: "AWS::KMS::Key"
+    Properties: 
+      Description: "Security Services Admin Delegation CloudWatch LogGroup Key"
+      EnableKeyRotation: true
+      KeyPolicy: 
+        Version: "2012-10-17"
+        Id: "key-default-1"
+        Statement: 
+          - 
+            Sid: "Allow Key Administration"
+            Effect: "Allow"
+            Principal: 
+              AWS: 
+              - !Ref EncryptionKeyAdministratorArn
+              - !Sub arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole
+            Action: 
+              - "kms:Create*"
+              - "kms:Describe*"
+              - "kms:Enable*"
+              - "kms:List*"
+              - "kms:Put*"
+              - "kms:Update*"
+              - "kms:Revoke*"
+              - "kms:Disable*"
+              - "kms:Get*"
+              - "kms:Delete*"
+              - "kms:ScheduleKeyDeletion"
+              - "kms:CancelKeyDeletion"
+              - "kms:GenerateDataKey"
+              - "kms:TagResource"
+              - "kms:UntagResource"
+            Resource: "*"
+          - 
+            Sid: "Allow CloudWatch Logs Service"
+            Effect: "Allow"
+            Principal: 
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Action: 
+              - "kms:Decrypt*"
+              - "kms:Encrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:ReEncrypt*"
+              - "kms:Describe*"
+            Resource: "*"
+            Condition:
+              ArnEquals:
+                "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - 
+            Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal: 
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 
+              - "kms:*"
+            Resource: "*"
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
+
+  SecurityServicesAdminEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref SecurityServicesAdminCloudWatchEncryptionKeyAliasName
+      TargetKeyId: !Ref SecurityServicesAdminCloudWatchEncryptionKey
 
   SecurityServicesAdminDelegation:
     Type: "Custom::SecurityServicesAdminDelegation"
