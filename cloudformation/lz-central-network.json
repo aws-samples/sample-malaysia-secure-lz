@@ -2813,7 +2813,7 @@
             "Type": "AWS::EC2::SecurityGroup",
             "Properties": {
                 "GroupDescription": "Allow HTTPS traffic from connected internal VPCs",
-                "GroupName": "sg-vpcendpoints",
+                "GroupName": "vpcendpoints-sg",
                 "VpcId": {
                     "Ref": "NetworkEndpointsVPC"
                 },
