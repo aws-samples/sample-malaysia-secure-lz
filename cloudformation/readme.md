@@ -164,10 +164,10 @@ Key Policy
     - Enable AWS Backup for whole of organization. Specify the new Shared Services (for backup administration) and central backup accounts. These accounts should not be enrolled under AWS Control Tower at the start.
         - Specify the KMS key id for Control Tower Backup encryption (alias control-tower-backup-key)
 
-6. Create **Cloudformation StackSet** to configure delegation of security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
+6. Create **CloudFormation StackSet** to configure delegation of security administration for AWS Security Services GuardDuty, Security Hub, Inspector, IAM Access Analyzer and Detective. 
     - Deployment Region: ap-southeast-5
     - Create new **CloudFormation StackSet**
-    - Permissions: Self-Managed Permissions
+    - Permission Model: Self-Service Permissions
         - IAM Execution Role Name : AWSCloudFormationStackSetExecutionRole
         - IAM admin role ARN : leave blank
     - Template: "lz-delegate-security-services.yaml"
@@ -243,11 +243,13 @@ Key Policy
 
 14. Setup centralized networking account. 
     - Create a new "Centralized Networking" account from Control Tower.
+    - Delete the "default VPC" in the networking account before deploying the CloudFormation script. 
     - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ROOT-OU-ID/INFRASTRUCTURE-OU-ID
     - Login to new network account to run CloudFormation script that deploys the VPC, AWS Network Firewall, Transit Gateway and Subnets. 
         - Deployment Region: Malaysia ap-southeast-5
         - CloudFormation script: "lz-central-network.json"
         - StackName: "lz-central-network"
+    - Note: Review the required "Network Access Control List" and "Firewall Policy" for Stateful to identify the rules to be set. Configuration of the Firewall Policies should be implemented using a separate CloudFormation script from the "lz-central-network.json"
 
 15. Delegate Firewall Manager security administration for centralized network management using policies and IPAM Manager. 
     - Deployment Region: N. Virginia us-east-1
