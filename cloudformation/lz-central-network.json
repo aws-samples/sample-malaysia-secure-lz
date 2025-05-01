@@ -1921,6 +1921,9 @@
                 "VpcId": {
                     "Ref": "NetworkInspectionVPC"
                 },
+                "EnabledAnalysisTypes": [
+                    "TLS_SNI", "HTTP_HOST"
+                ],
                 "Tags": [
                     {
                         "Key": "Application",
