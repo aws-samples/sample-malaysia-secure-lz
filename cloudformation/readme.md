@@ -222,11 +222,8 @@ Key Policy
 
 11. Enroll all the OUs (Infrastructure, Sandbox, Forensic) under Control Tower Management. Go to AWS Control Tower --> Organization and select the OU for registration. Do not register "Suspended" OU under Control Tower management because this is for closed/suspended accounts. Do not enable backup.
 
-12. Enable IAM Access Analyzer in the management account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
-    - Deployment Region: Malaysia ap-southeast-5
-    - CloudFormation script: "lz-audit-access-analyzer.json"
-    - StackName: "lz-audit-access-analyzer"
-    - Parameter: 
+12. Enable **IAM Access Analyzer** in the management account in region ap-southeast-5 that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
+    - Go to IAM Access Analyzer --> Create Access Analzyer 
         - AnalyzerType: ACCOUNT
 
 13. Configure IAM Identity Center (IDC). IDC is used for all of the organization users to access the AWS environment for a single-sign-on experience.
@@ -259,8 +256,9 @@ Key Policy
     - Deployment Region: N. Virginia us-east-1
     - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
     - StackName: "lz-delegate-firewall-manager-ipam"
-    - Parameters: Set the AdminAccountId parameter to the AWS Control Tower audit account.  
-                  Set the DelegatedIPAMAdminAccount to the network account.         
+    - Parameters: 
+        - Set the AdminAccountId parameter to the AWS Control Tower audit account.  
+        - Set the DelegatedIPAMAdminAccount to the network account.         
 
 ## Post CloudFormation deployment configuration
 1. Perform these configurations in central network account
@@ -348,7 +346,7 @@ Key Policy
 - Parameter: 
     - EmailAddresses: Comma-delimited list of email addresses to subscribe to the SNS topic
 
-6. Enable IAM Access Analyzer in the **Audit** account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
+6. Enable IAM Access Analyzer in the **Audit** account. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-audit-access-analyzer.json"
     - StackName: "lz-audit-access-analyzer"
@@ -386,7 +384,7 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 - Review the Lambda function's CloudWatch log group events to determine what may have caused the issues. Go to "Resources" tab and select the LambdaLogGroup to review the log stream events and to identify the potential root causes.
 
 2. CloudFormation rollback failure
-- Go to AWS CloudFormation console and select the STack with the identified issues. 
+- Go to AWS CloudFormation console and select the Stack with the identified issues. 
 - Force delete the StackSet and check the box to delete resources.
 - Go to resources and check that all the previously created resources (e.g. IAM Role, Lamdba Function, CloudWatch Log Group) are moved. Click on each remaining resource, and delete the remaining resource manually. 
 
