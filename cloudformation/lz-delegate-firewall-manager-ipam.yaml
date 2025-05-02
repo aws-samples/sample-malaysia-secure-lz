@@ -167,26 +167,10 @@ Resources:
                       cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
               except Exception as e:
                   logger.error(f"Error: {str(e)}")
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
-          def set_service_organization_admin(account_id, service):
-              try:
-                  organizations_client.register_delegated_administrator(AccountId=account_id, ServicePrincipal=service)
-                  logger.info(f"{service} delegated security admin account updated successfully")
-              except ClientError as e:
-                  if e.response['Error']['Code'] == 'AccountAlreadyRegisteredException':
-                      logger.info(f"{service} delegated security admin account {account_id} is already a delegated administrator for your organization. {str(e)}")
-                  else:
-                      logger.error(f"Error updating {service} delegated security admin account configuration: {str(e)}")
-                      raise
-          def reset_service_organization_admin(account_id, service):
-              try:
-                  organizations_client.deregister_delegated_administrator(AccountId=account_id, ServicePrincipal=service)
-                  logger.info(f"{service} delegated security admin account reset successfully")
-              except ClientError as e:
-                  logger.error(f"Error resetting {service} delegated security admin account configuration: {str(e)}")
-                  raise                  
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)              
           def set_firewallmanager_organization_admin(account_id):
               try:
+                  organizations_client.enable_aws_service_access(ServicePrincipal='fms.amazonaws.com')
                   fms_client.associate_admin_account(AdminAccount=account_id)
                   logger.info("Firewall Manager delegated security admin account updated successfully")
               except ClientError as e:
@@ -204,6 +188,7 @@ Resources:
                   raise
           def set_ipam_organization_admin(account_id):
               try:
+                  organizations_client.enable_aws_service_access(ServicePrincipal='ipam.amazonaws.com')
                   ipam_client.enable_ipam_organization_admin_account(DelegatedAdminAccountId=account_id)
                   logger.info("IPAM delegated admin account updated successfully")
               except ClientError as e:
