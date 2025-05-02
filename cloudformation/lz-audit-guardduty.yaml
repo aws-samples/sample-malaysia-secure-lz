@@ -160,7 +160,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "arn:aws:logs:*:*:*"
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*"
               - Effect: Allow
                 Action:
                   - "guardduty:UpdateOrganizationConfiguration"
@@ -173,7 +173,7 @@ Resources:
                   - "organizations:ListAccounts"
                   - "sts:GetCallerIdentity"
                 Resource: "*"
-      RoleName: "guardduty-configuration-lambda"
+      RoleName: !Sub "guardduty-configuration-lambda-${AWS::Region}"
       Tags:
         - Key: "CreatedBy"
           Value: "SecureLandingZone"
@@ -262,7 +262,7 @@ Resources:
       Environment:
         Variables:
           LOGGING_LEVEL: !Ref LoggingLevel
-      FunctionName: "security-services-guardduty-configuration"
+      FunctionName: !Sub "${AWS::StackName}-guardduty-configuration"
       Handler: index.lambda_handler
       LoggingConfig:
         LogGroup: !Ref GuardDutyConfigurationLambdaLogGroup
