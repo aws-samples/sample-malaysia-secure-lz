@@ -210,6 +210,10 @@ Key Policy
     - Managed execution: "Inactive"
     - Specify Regions: ap-southeast-5, us-east-1
     - Deployment Configuration: "Deploy to Organization"
+        - Add stacks to stack set: "Deploy new stacks"
+        - Deployment targets: "Deploy to organisation"
+        - Automatic deployment: "Activated"
+        - Account removal behaviour: "Delete stacks"
         - Maximum concurrent accounts: 3 (adjustable)
         - Failure tolerance: 0 ("Maximum Concurrent Accounts" - 1)
         - Region concurrency: Sequential
@@ -249,7 +253,7 @@ Key Policy
         - Deployment Region: Malaysia ap-southeast-5
         - CloudFormation script: "lz-central-network.json"
         - StackName: "lz-central-network"
-    - Note: Review the required "Network Access Control List" and "Firewall Policy" for Stateful to identify the rules to be set. Configuration of the Firewall Policies should be implemented using a separate CloudFormation script from the "lz-central-network.json"
+    - Note: Review the required "Network Access Control List" and "Firewall Policy" for Stateful to identify the rules to be set. Configuration of the Firewall Policies should be implemented using a separate CloudFormation script from the "lz-central-network.json".
 
 15. Delegate Firewall Manager security administration for centralized network management using policies and IPAM Manager. 
     - Deployment Region: N. Virginia us-east-1
@@ -311,24 +315,19 @@ Key Policy
 7. Configure the Transit Gateway routetable and propagation for the VPN connection that is attached to Transit Gateway
 
 ## Configure AWS Security Services
-1. Enable Security Hub in management account for all the governed regions
-    - Deployment Region: Malaysia ap-southeast-5, N. Virgina us-east-1
-    - CloudFormation script: "lz-audit-securityhub.json"
-    - StackName: "lz-organization-securityhub"
+1. Login to the **Audit** account which is delegated security administration for the Control Tower landing zone.
 
-2. Login to the "Audit" account which is delegated security administration for the Control Tower landing zone.
-
-3. Enable GuardDuty with auto-enable for organization and enable these protection plans for all the member accounts.
-    - S3 Protection
-    - Runtime Monitoring
-    - Lambda Network Activity Monitoring
-    - Malware Protection for EC2
-    - Deployment Region: Malaysia ap-southeast-5
+2. Enable **GuardDuty** with auto-enable for organization and enable these protection plans (a. S3 Protection, b. Runtime Monitoring, c. Lambda Network Activity Monitoring, d. Malware Protection for EC2, e. RDS Login Activity Monitoring) for all the member accounts.
+    - Deployment Region: Malaysia ap-southeast-5, us-east-1
     - CloudFormation script: "lz-audit-guardduty.yaml"
     - StackName: "lz-audit-guardduty"
-    - Add all the member accounts to the GuardDuty Protection Plan. Go to "GuardDuty" --> Accounts in delegated administration account for security. Select "Add Member" under "Actions"
+    - Obtain the GuardDuty DetectorId from "GuardDuty" --> "Settings" for each region.
+    - Add all the member accounts to the GuardDuty Protection Plan for each region. 
+        - Action: Go to "GuardDuty" --> "Accounts" in delegated administration account for security. Select "Add Member" under "Actions".
+    - Retain scanned snapshots when malware is detected for each region. 
+        - Action: Go to "GuardDuty" --> "General Settings", and enable "Retain scanned snapshots when malware is detected."
 
-4. Create a new Security Hub Central Configuration Policy that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
+3. Enable **Security Hub** in management account for all the governed regions. Create a new Security Hub Central Configuration Policy in **"us-east-1"** that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Disable specific Security Hub findings that are no longer required.
         - [IAM.6] Hardware MFA should be enabled for the root user
         - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
@@ -340,16 +339,16 @@ Key Policy
         - [ELB.14] Classic Load Balancer should be configured with defensive or strictest desync mitigation mode
         - [Macie.1] Amazon Macie should be enabled
         - [Macie.2] Macie automated sensitive data discovery should be enabled
-    - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources. WORKAROUND: The above central configuration has to be done manually.
+    - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources; Aggregator finding is not yet available. WORKAROUND: The above central configuration has to be done manually.
 
-5. In the "Audit" account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
+5. In the **Audit** account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
 - Deployment Region: ap-southeast-5
 - CloudFormation script: "lz-audit-guardduty-notifications.yaml"
 - StackName: "lz-audit-guardduty-notifications"
 - Parameter: 
     - EmailAddresses: Comma-delimited list of email addresses to subscribe to the SNS topic
 
-6. Enable IAM Access Analyzer in the *audit* account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
+6. Enable IAM Access Analyzer in the **Audit** account that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-audit-access-analyzer.json"
     - StackName: "lz-audit-access-analyzer"
