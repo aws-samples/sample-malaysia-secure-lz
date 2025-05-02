@@ -220,14 +220,27 @@ Resources:
               - kms:Decrypt
               - kms:ReEncrypt*
               - kms:GenerateDataKey*
-              - kms:CreateGrant
-              - kms:ListGrants
               - kms:DescribeKey
             Resource: "*"
             Condition:
               StringEquals:
                 kms:ViaService: !Sub "ec2.${AWS::Region}.amazonaws.com"
                 kms:CallerAccount: !Ref "AWS::AccountId"
+          - Sid: Allow attachment of persistent resources
+            Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - kms:CreateGrant
+              - kms:ListGrants
+              - kms:RevokeGrant
+            Resource: "*"
+            Condition:
+              StringEquals:
+                kms:ViaService: !Sub "ec2.${AWS::Region}.amazonaws.com"
+                kms:CallerAccount: !Ref "AWS::AccountId"
+              Bool:
+                "kms:GrantIsForAWSResource": true
       Tags:
         - Key: Purpose
           Value: EBS Default Encryption
@@ -266,7 +279,6 @@ Resources:
               - "kms:Delete*"
               - "kms:ScheduleKeyDeletion"
               - "kms:CancelKeyDeletion"
-              - "kms:GenerateDataKey"
               - "kms:TagResource"
               - "kms:UntagResource"
             Resource: "*"
