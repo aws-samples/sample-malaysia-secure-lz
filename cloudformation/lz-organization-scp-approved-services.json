@@ -4,7 +4,7 @@
     "Parameters": {
         "ApprovedServicesPolicyName": {
             "Type": "String",
-            "Default": "my-lza-approved-services",
+            "Default": "my-slz-approved-services",
             "Description": "Name of the approved services Service Control Policy"
         },
         "PolicyDescription": {
@@ -146,6 +146,7 @@
                                         "sqs:*",
                                         "ssm:*",
                                         "ssm-incidents:*",
+                                        "ssm-guiconnect:*",
                                         "ssmmessages:*",
                                         "states:*",
                                         "storagegateway:*",
