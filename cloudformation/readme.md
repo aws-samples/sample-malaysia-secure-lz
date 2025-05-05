@@ -77,6 +77,7 @@ Complete these validation checks before starting the deployment of the SLZ.
         - lz-organization-guardrails.yaml
         - lz-organization-scp-approved-services.json
         - lz-organization-rcp-guardrails.json
+        - lz-organization-scp-guardrails.json
 
 
 ## Installation Steps
@@ -170,7 +171,7 @@ Key Policy
     - Permission Model: Self-Service Permissions
         - IAM Execution Role Name : AWSCloudFormationStackSetExecutionRole
         - IAM admin role ARN : leave blank
-    - Template: "lz-delegate-security-services.yaml"
+    - Upload Template: "lz-delegate-security-services.yaml"
     - StackSetName: lz-delegate-security-services
     - Parameters: Set the Security Audit Admin Account parameter to the AWS Control Tower audit account.
     - Execution configuration: "Inactive"
@@ -203,7 +204,7 @@ Key Policy
 10. Create **CloudFormation StackSet** to configure new AWS account security baseline for each member account in each home region 
     - Deployment Region: Malaysia ap-southeast-5
     - Create new **"CloudFormation StackSet"**
-    - Permissions: Service-managed permissions
+    - Permissions model: Service-managed permissions
     - Template: lz-account-baseline.yaml
     - StackSetName: "lz-account-baseline"
     - Parameters: Set the EbsDefaultEncryptionKeyAdministratorArn parameter to the permitted IAM Admin Role.
@@ -232,6 +233,7 @@ Key Policy
         - Deployment Region: Malaysia ap-southeast-5 region where IDC instance is deployed
         - CloudFormation script: "lz-iam-idc-permissionsets.json"
         - StackName: "lz-iam-idc-permissionsets"
+        - SSOInstanceArn: Go to IAM Identity Center > Setting > Instance ARN
     - (Optional) Configure your organization's Identity Provider (e.g. Microsoft EntraID, OKTA) to set MFA is required for all sign-in requests. 
     - Assign the IDC users with the required "SLZProductionSupportAccess" permission set to all the AWS accounts. This user will be used to configure the remaining steps in the member accounts.
 
@@ -245,7 +247,7 @@ Key Policy
 14. Setup centralized networking account. 
     - Create a new "Centralized Networking" account from Control Tower.
     - Delete the "default VPC" in the networking account before deploying the CloudFormation script. 
-    - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ROOT-OU-ID/INFRASTRUCTURE-OU-ID
+    - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ORGANIZATION-ID/INFRASTRUCTURE-OU-ID
     - Login to new network account to run CloudFormation script that deploys the VPC, AWS Network Firewall, Transit Gateway and Subnets. 
         - Deployment Region: Malaysia ap-southeast-5
         - CloudFormation script: "lz-central-network.json"
@@ -257,7 +259,7 @@ Key Policy
     - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
     - StackName: "lz-delegate-firewall-manager-ipam"
     - Parameters: 
-        - Set the AdminAccountId parameter to the AWS Control Tower audit account.  
+        - Set the DelegatedSecurityAdminAccount parameter to the AWS Control Tower audit account.
         - Set the DelegatedIPAMAdminAccount to the network account.         
 
 ## Post CloudFormation deployment configuration
@@ -323,10 +325,14 @@ Key Policy
     - Add all the member accounts to the GuardDuty Protection Plan for each region. 
         - Action: Go to "GuardDuty" --> "Accounts" in delegated administration account for security. Select "Add Member" under "Actions".
     - Retain scanned snapshots when malware is detected for each region. 
-        - Action: Go to "GuardDuty" --> "General Settings", and enable "Retain scanned snapshots when malware is detected."
+        - Action: Go to "GuardDuty" --> "Malware Protection for EC2" --> "General Settings", and enable "Retain scanned snapshots when malware is detected."
 
 3. Enable **Security Hub** in management account for all the governed regions. Create a new Security Hub Central Configuration Policy in **"us-east-1"** that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
-    - Disable specific Security Hub findings that are no longer required.
+    - Security Hub --> Settings --> Regions
+        - Enable cross-Region aggregation.
+        - Choose Home Region: us-east-1
+        - Choose Linked Regions: ap-southeast-5
+    - Disable specific Security Hub findings that are no longer required. (Security Hub --> Controls)
         - [IAM.6] Hardware MFA should be enabled for the root user
         - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
         - [ELB.3] Classic Load Balancer listeners should be configured with HTTPS or TLS termination
@@ -372,9 +378,9 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 - Select Enable for my organization to apply the trail to all accounts.
 - Choose the existing S3 bucket used to collect CloudTrail logs
 - Configure KMS encryption for security.
-- Under Event type, check Data events. Switch to Basic event selector
-- Click S3 and choose either to trail for all bucker or specific S3 buckets.
 - Configure CloudWatch Logs if monitoring is required.
+- Under Event type, check Data events. Switch to Basic event selector
+- Click S3 and choose either to trail for all bucket or specific S3 buckets.
 - Review and Click Create trail.
 
 ## Troubleshooting
