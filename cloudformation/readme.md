@@ -69,6 +69,7 @@ Complete these validation checks before starting the deployment of the SLZ.
         - Block all public access: Enabled (recommended)
         - Bucket versioning: Enabled (recommended)
         - Default encryption: Enabled (recommended)
+        - Lifecycle configuration rules: Not required for CloudFormation templates.
     - Upload the below cloudformation templates into the S3 bucket. You can upload the files to the root of the bucket, or specify a prefix if templates are to be in a folder.
         - lz-organization.json
         - lz-stackset-roles.yaml
