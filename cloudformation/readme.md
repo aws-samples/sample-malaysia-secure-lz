@@ -416,3 +416,9 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
         - Go to AWS Systems Manager console in management account, choose Quick Setup for Resource Explorer.
         - Set Aggregator Index Region to ap-southeast-5
         - Targets section should specify these OUs (Workloads, Security and Infrastructure) and governed home region (ap-southeast-5) 
+
+## Security
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+This library is licensed under the MIT-0 License. See the LICENSE file.
