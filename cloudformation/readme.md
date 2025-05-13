@@ -1,11 +1,11 @@
-# Malaysia SLZ (Beta)
+# Malaysia SLZ
 
-This beta release of the Secure Landing Zone (SLZ) is for Malaysia public sector agencies and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. CGSO cloud requirements are transposed into configurable infrastructure as code (IaC) scripts. 
+The Secure Landing Zone (SLZ) is for Malaysia public sector agencies and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. CGSO cloud requirements are transposed into configurable infrastructure as code (IaC) scripts. 
 
 ![Malaysia Landing Zone Architecture](/cloudformation/images/malaysia-lza-presentation-lza.drawio.png)
 
 
-Feature Components
+## Feature Components
 1. Management: AWS Organization and Control Tower
     - Service Control Policy: region deny, enforce data encryption for data resources, and restrict access to approved AWS services.
     - Resource Policy: enforce TLS connections, prevent cross deputy
