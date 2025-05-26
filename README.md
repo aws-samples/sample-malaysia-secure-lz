@@ -1,21 +1,8 @@
 # Secure Landing Zone (SLZ) for PS Malaysia
 
-Folder "from-scratch" is the SLZ configuration package with Service Control Policies, Default Security Guardrails and configuration. 
+The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies (customers) and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. Malaysia Chief Government Security Officer (CGSO) cloud security requirements (where applicable) are transposed into configurable infrastructure as code (IaC) scripts. These scripts help customers and partners to accelerate their implementation at the early foundation stages of implementation.
 
-Folder "cloudformation" is the Secure Landing Zone configuration package that will be published to AWS GitHub aws-samples
-
-## Add your files
-- [ ] [GitLab mwinit access guide](https://gitlab.pages.aws.dev/docs/Platform/ssh.html)
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin git@ssh.gitlab.aws.dev:ghazas/lza-for-ps-malaysia.git
-git branch -M main
-git add .
-git commit -m "Initial Commit"
-git push -uf origin main
-```
+Scripts in the folder "cloudformation" is the Secure Landing Zone configuration package that will be published to AWS GitHub aws-samples
 
 ## Technical requirements mapping to CGSO Cloud Guidelines
 
@@ -31,10 +18,10 @@ git push -uf origin main
 | Network Security | AWS Network Firewall with IPS (as Suricata rules) | 12.4.2 | lz-central-network.json |
 | Network Security | AWS Route53 DNS Resolver Firewall | 12.4.2 | PENDING |
 | Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | 7.1.3, 7.5.1 | lz-central-network.json |
-| Security Assurance | Security Hub | 7.5.7, 12.1.2, 12.1.3, 12.1.5 | MANUAL |
-| Logging and Monitoring | Organization CloudTrail (multi-region, management events), as part of Control Tower | 7.3.1, 7.5.4, 12.3.3 | MANUAL | 
-| Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | MANUAL |
+| Security Assurance | Security Hub | 7.5.7, 12.1.2, 12.1.3, 12.1.5 | Manual Configuration |
+| Logging and Monitoring | Organization CloudTrail (multi-region, management events), as part of Control Tower | 7.3.1, 7.5.4, 12.3.3 | Manual Configuration | 
+| Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | Manual Configuration |
 | Logging and Monitoring | S3 Access Logs | 7.3.1 | PENDING |  
 | Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
 | Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | PENDING |
-| Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | MANUAL |
+| Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | Manual Configuration |
