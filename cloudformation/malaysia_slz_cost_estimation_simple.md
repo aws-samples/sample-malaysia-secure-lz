@@ -1,8 +1,8 @@
-# Malaysia Secured Landing Zone (SLZ) Cost Analysis Estimate Report
+# Malaysia Secure Landing Zone (SLZ) - Cost Analysis Estimate Report
 
 ## Service Overview
 
-The Malaysia Secured Landing Zone (SLZ) is designed for Malaysia public sector ministries, agencies (customers) and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. Malaysia Chief Government Security Officer (CGSO) cloud security requirements (where applicable) are transposed into configurable infrastructure as code (IaC) scripts. This comprehensive solution uses multiple AWS services following a pay-as-you-go pricing model, making it cost-effective for various government workloads.
+The Malaysia Secure Landing Zone (SLZ) is designed for Malaysia public sector ministries, agencies (customers) and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. Malaysia Chief Government Security Officer (CGSO) cloud security requirements (where applicable) are transposed into configurable infrastructure as code (IaC) scripts. This comprehensive solution uses multiple AWS services following a pay-as-you-go pricing model, making it cost-effective for various government workloads.
 
 ## Pricing Model
 
@@ -92,7 +92,7 @@ For organizations implementing the minimum viable Malaysia SLZ with 8 core accou
 | AWS Control Tower & Organizations | Control Tower | 1 unit | No charge | No additional charges for Control Tower and Organizations |
 | AWS Control Tower & Organizations | Organizations | 1 unit | No charge | No additional charges for Control Tower and Organizations |
 | AWS GuardDuty | Cloudtrail Events | million events | $3.91 | 30-day free trial for new accounts |
-| AWS GuardDuty | Vpc Flow Logs | GB (first 500 GB) | $0.9775 | 30-day free trial for new accounts |
+| AWS GuardDuty | VPC Flow Logs | GB (first 500 GB) | $0.9775 | 30-day free trial for new accounts |
 | AWS GuardDuty | S3 Protection | million events | $0.986 | 30-day free trial for new accounts |
 | AWS GuardDuty | Eks Protection | million events | $1.8615 | 30-day free trial for new accounts |
 | AWS GuardDuty | Rds Protection | vCPU/month | $1.037 | 30-day free trial for new accounts |
@@ -108,7 +108,7 @@ For organizations implementing the minimum viable Malaysia SLZ with 8 core accou
 | VPC Endpoints | Interface Endpoint | AZ hour | $0.01 | No free tier for interface endpoints |
 | VPC Endpoints | Data Processing | GB | $0.01 | No free tier for interface endpoints |
 | AWS KMS | Key Storage | key/month | $1.00 | 20,000 requests/month free tier |
-| AWS KMS | Api Requests | 10,000 requests | $0.03 | 20,000 requests/month free tier |
+| AWS KMS | API Requests | 10,000 requests | $0.03 | 20,000 requests/month free tier |
 | AWS Backup | Ebs Storage | GB-month | $0.045 | No free tier for backup storage |
 | AWS Backup | Efs Storage | GB-month | $0.06 | No free tier for backup storage |
 | AWS Backup | Cross Region | GB | $0.08-$0.11 | No free tier for backup storage |
@@ -118,7 +118,7 @@ For organizations implementing the minimum viable Malaysia SLZ with 8 core accou
 | AWS Systems Manager | Parameter Store | 10,000 requests | $0.05 | Basic features free, advanced features charged |
 | AWS Systems Manager | Patch Manager | instance scan | No charge | No additional charges |
 | AWS Systems Manager | Session Manager | 1,000 messages | No charge | No additional charges |
-| AWS IAM Identity Center | Sso | 1 unit | No charge | No additional charges |
+| AWS IAM Identity Center | Single-Sign-On | 1 unit | No charge | No additional charges |
 
 
 ### Key Cost Factors
