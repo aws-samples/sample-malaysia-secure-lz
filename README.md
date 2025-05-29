@@ -1,8 +1,6 @@
-# Secure Landing Zone (SLZ) for PS Malaysia
+# Secure Landing Zone (SLZ) for Malaysia Public Sector
 
 The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies (customers) and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. Malaysia Chief Government Security Officer (CGSO) cloud security requirements (where applicable) are transposed into configurable infrastructure as code (IaC) scripts. These scripts help customers and partners to accelerate their implementation at the early foundation stages of implementation.
-
-Scripts in the folder "cloudformation" is the Secure Landing Zone configuration package that will be published to AWS GitHub aws-samples
 
 ## Technical requirements mapping to CGSO Cloud Guidelines
 
@@ -25,3 +23,10 @@ Scripts in the folder "cloudformation" is the Secure Landing Zone configuration 
 | Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
 | Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | PENDING |
 | Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | Manual Configuration |
+
+
+## Security
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+This library is licensed under the MIT-0 License. See the LICENSE file.
