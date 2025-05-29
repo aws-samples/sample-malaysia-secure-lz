@@ -2,7 +2,7 @@
 
 The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies (customers) and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. Malaysia Chief Government Security Officer (CGSO) cloud security requirements (where applicable) are transposed into configurable infrastructure as code (IaC) scripts. These scripts help customers and partners to accelerate their implementation at the early foundation stages of implementation.
 
-![Deployment Workbook and CloudFormation Scripts](/cloudformation/readme.md)
+**[Deployment Workbook and CloudFormation Scripts](/cloudformation/readme.md)**
 
 ## Technical requirements mapping to CGSO Cloud Guidelines
 
