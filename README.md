@@ -71,6 +71,8 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
     - Aurora, RDS, EFS: enforce data-at-rest encryption with KMS-CMK
 10. Forensics: OU
 
+## Pricing Estimate
+Refer to this [Malaysia SLZ cost estimate report](/cloudformation/malaysia_slz_cost_estimation_simple.md) to guide you on the pricing considerations in the running the Malaysia SLZ.
 
 ## Security
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
