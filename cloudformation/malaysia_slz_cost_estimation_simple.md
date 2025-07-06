@@ -1,6 +1,6 @@
-# Malaysia Secured Landing Zone (SLZ) Cost Analysis Estimate Report
+# Malaysia Secure Landing Zone (SLZ) Cost Analysis Estimate Report
 ## Service Overview
-The Malaysia Secured Landing Zone (SLZ) is designed for Malaysia public sector ministries, agencies (customers) and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. Malaysia Chief Government Security Officer (CGSO) cloud security requirements (where applicable) are transposed into configurable infrastructure as code (IaC) scripts. This comprehensive solution uses multiple AWS services following a pay-as-you-go pricing model, making it cost-effective for various government workloads.
+The Malaysia Secure Landing Zone (SLZ) is designed for Malaysia public sector ministries, agencies (customers) and partners to deploy "Secure by Default" guardrails for their AWS multi-account landing zone. Malaysia Chief Government Security Officer (CGSO) cloud security requirements (where applicable) are transposed into configurable infrastructure as code (IaC) scripts. This comprehensive solution uses multiple AWS services following a pay-as-you-go pricing model, making it cost-effective for various government workloads.
 ## Pricing Model
 This cost analysis estimate is based on the following pricing model:
 - **ON DEMAND** pricing (pay-as-you-go) unless otherwise specified
@@ -12,18 +12,17 @@ The pricing in this report is based on:
 - **Secondary Region**: US East (N. Virginia) us-east-1 for global services
 - **Pricing Date**: As of June 2025
 ### How Pricing Was Obtained
-1. **AWS Pricing Pages**: Official AWS service pricing pages (aws.amazon.com/pricing/)
-2. **AWS Pricing Calculator**: Used for complex multi-service calculations
-3. **AWS Documentation**: Confirmed regional pricing patterns for Asia Pacific regions
+1. **AWS Pricing Pages**: [AWS service pricing](https://aws.amazon.com/pricing/)
+2. **AWS Pricing Calculator**: Used for multi-service calculations
 ### Validation Method
 To ensure accuracy, customers should:
-1. Check the AWS Pricing Calculator with ap-southeast-5 selected
+1. Check the AWS Pricing Calculator with "ap-southeast-5" selected
 2. Review actual billing after deployment for any regional variations
 3. Contact AWS sales for official quotes specific to Malaysia region
 ### AWS Pricing Calculator Template
 For customized cost estimation, use our pre-configured AWS Pricing Calculator template:
-**Template URL**: https://calculator.aws/#/estimate?id=ca47f4f843a596e04244170c9b031a1cdf0a62a7
-This template includes:
+**Pricing Template URL**: https://calculator.aws/#/estimate?id=ca47f4f843a596e04244170c9b031a1cdf0a62a7
+This pricing template includes:
 - All Malaysia SLZ core services pre-configured
 - Baseline assumptions for 8-account setup
 - Malaysia (ap-southeast-5) region pricing
@@ -36,7 +35,7 @@ This template includes:
 5. Export the estimate for budget planning and approval processes
 The template serves as a starting point - customize it based on your organization's actual requirements and usage patterns.
 ## Assumptions
-- Minimum viable setup with 8 core AWS accounts:
+- Minimum setup with 8 core AWS accounts:
   - Management Account (Organization root)
   - Audit Account (Security and compliance monitoring)
   - Log Archive Account (Centralized logging)
@@ -45,14 +44,14 @@ The template serves as a starting point - customize it based on your organizatio
   - Central Backup Account (Backup management)
   - Production Account (Production workloads)
   - Non-Production Account (Development/testing)
-- 2 AWS regions enabled: ap-southeast-5 (Malaysia) and us-east-1
-- Average of 50 EC2 instances across all accounts
+- 2 AWS regions enabled: ap-southeast-5 (Malaysia) and us-east-1 (N. Virginia)
+- 50x EC2 instances across all accounts
 - 2TB of data processed through Network Firewall monthly
 - 50GB of VPC Flow Logs and DNS logs for GuardDuty
 - 500 configuration items per account for AWS Config
 - Daily and weekly backup policies enabled
-- 3 Availability Zones in use for Network Firewall
-- 6 VPC endpoints for essential AWS services
+- 3x Availability Zones in use for Network Firewall
+- 6x VPC endpoints for essential AWS services
 - Standard workload patterns with moderate API usage
 ## Limitations and Exclusions
 - Data transfer costs between regions
@@ -101,4 +100,4 @@ Enable AWS Cost Explorer, set up billing alerts, use AWS Budgets, and implement 
 
 ## Conclusion
 
-The Malaysia Secured Landing Zone provides comprehensive security and governance capabilities for AWS multi-account environments. The minimum viable setup with 8 core accounts has an estimated monthly cost of $2,827.70, covering essential security services, networking, backup, and compliance monitoring.
+The Malaysia Secure Landing Zone provides comprehensive security and governance capabilities for AWS multi-account environments. The minimum viable setup with 8 core accounts has an estimated monthly cost of $2,827.70, covering essential security services, networking, backup, and compliance monitoring.
