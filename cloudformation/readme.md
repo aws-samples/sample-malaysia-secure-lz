@@ -304,6 +304,7 @@ Key Policy
 1. Login to the **Audit** account which is delegated security administration for the Control Tower landing zone.
 
 2. Enable **GuardDuty** with auto-enable for organization and enable these protection plans (a. S3 Protection, b. Runtime Monitoring, c. Lambda Network Activity Monitoring, d. Malware Protection for EC2, e. RDS Login Activity Monitoring) for all the member accounts.
+    - Deployment Account: delegated security audit account
     - Deployment Region: Malaysia ap-southeast-5, us-east-1
     - CloudFormation script: "lz-audit-guardduty.yaml"
     - StackName: "lz-audit-guardduty"
@@ -332,6 +333,7 @@ Key Policy
     - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources; Aggregator finding is not yet available. WORKAROUND: The above central configuration has to be done manually.
 
 5. In the **Audit** account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
+- Deployment Account: delegated security audit account
 - Deployment Region: ap-southeast-5
 - CloudFormation script: "lz-audit-guardduty-notifications.yaml"
 - StackName: "lz-audit-guardduty-notifications"
@@ -339,6 +341,7 @@ Key Policy
     - EmailAddresses: Comma-delimited list of email addresses to subscribe to the SNS topic
 
 6. Enable IAM Access Analyzer in the **Audit** account. 
+    - Deployment Account: delegated security audit account
     - Deployment Region: Malaysia ap-southeast-5
     - CloudFormation script: "lz-audit-access-analyzer.json"
     - StackName: "lz-audit-access-analyzer"
