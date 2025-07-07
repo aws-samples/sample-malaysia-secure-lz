@@ -351,6 +351,7 @@ Resources:
                   - "ec2:ModifyEbsDefaultKmsKeyId"
                   - "sts:GetCallerIdentity"
                   - "iam:UpdateAccountPasswordPolicy"
+                  - "kms:Describe*"
                 Resource: "*"
       Tags:
         - Key: identity-perimeter-exception
@@ -441,7 +442,7 @@ Resources:
     Type: "Custom::EC2DataProtectionSecurity"
     Properties:
       EbsDefaultEncryption: !Ref EbsDefaultEncryption
-      EbsDefaultEncryptionKMSKeyAlias: !Ref EbsDefaultEncryptionKeyAliasName
+      EbsDefaultEncryptionKMSKeyAlias: !Ref EbsDefaultEncryptionKeyAlias
       ServiceToken: !GetAtt EC2DataProtectionSecurityUpdateLambda.Arn
 
   # Password Policy Configuration
