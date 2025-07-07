@@ -319,9 +319,11 @@ Key Policy
 3. Enable **Security Hub** in management account for all the governed regions. Create a new Security Hub Central Configuration Policy in **"us-east-1"** that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Security Hub --> Settings --> Regions
         - Enable cross-Region aggregation.
-        - Choose Home Region: us-east-1
-        - Choose Linked Regions: ap-southeast-5
-    - Disable specific Security Hub findings that are no longer required. (Security Hub --> Controls)
+    - Choose Home Region: us-east-1
+    - Choose Linked Regions: ap-southeast-5
+    - Select "Configuration type" as "Customize my Security Hub Configuration". 
+    - Select "Custom policy" to "Enable Security Hub CSPM", with "AWS Foundational Security Best Practices v1.0.0" selected as the security standard. 
+    - Select "Disable specific control", to remove Security Hub findings that are no longer required. (Security Hub --> Controls)
         - [IAM.6] Hardware MFA should be enabled for the root user
         - [ELB.2] Classic Load Balancers with SSL/HTTPS listeners should use a certificate provided by AWS Certificate Manager
         - [ELB.3] Classic Load Balancer listeners should be configured with HTTPS or TLS termination
@@ -332,6 +334,9 @@ Key Policy
         - [ELB.14] Classic Load Balancer should be configured with defensive or strictest desync mitigation mode
         - [Macie.1] Amazon Macie should be enabled
         - [Macie.2] Macie automated sensitive data discovery should be enabled
+    - For the "Accounts" to apply this policy to, select to "All accounts" for entire organization coverage and consistency.
+    - Provide a Policy name, e.g. "malaysia-slz-security-hub-configuration-policy".å
+    - Confirm the configuration settings and select "Create policy and apply".
     - BUG: CloudFormation service in Malaysia region does not recognize AWS::SecurityHub::ConfigurationPolicy CloudFormation Resources; Aggregator finding is not yet available. WORKAROUND: The above central configuration has to be done manually.
 
 5. In the **Audit** account, create an Event Pattern to send an automated email alert on CRITICAL or HIGH severity findings from Security Hub and GuardDuty products. Identify an email to subscribe to the SNS notification.
@@ -388,3 +393,4 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 3. Control Tower Backup enrollment failure
 - Error description "Insufficient privileges to create a backup vault. Creating a backup vault requires backup-storage and KMS permissions."
     - Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
+
