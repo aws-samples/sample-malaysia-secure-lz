@@ -391,8 +391,11 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 - Force delete the StackSet and check the box to delete resources.
 - Go to resources and check that all the previously created resources (e.g. IAM Role, Lamdba Function, CloudWatch Log Group) are moved. Click on each remaining resource, and delete the remaining resource manually. 
 
-3. Control Tower Backup enrollment failure
+3. CloudFormation StackSet deployment failures
+- After rolling back (deleting) a StackSet, there may be some remaining CloudWatch Log Groups that were not removed. Go to the affected account and region to delete remaining CloudWatch Log Groups built by the StackSet before attempting to re-run the StackSet.
+
+4. Control Tower Backup enrollment failure
 - Error description "Insufficient privileges to create a backup vault. Creating a backup vault requires backup-storage and KMS permissions."
 - Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
 
-4. When deleting a StackSet, ensure to delete CloudWatch Logs Group resources before attempting to re-run the StackSet.
+
