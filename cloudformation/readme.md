@@ -285,12 +285,13 @@ Key Policy
 - Priority sequence: Allow-Domains, ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder, custom-suricata-rule-group
 
 4. Set route to Firewall Endpoints in Route Tables
-- NetworkInspection-Pub-A: 10.0.0.0/8 to firewall endpoint for that AZ-A
-- NetworkInspection-Pub-B: 10.0.0.0/8 to firewall endpoint for that AZ-B
-- NetworkInspection-Pub-C: 10.0.0.0/8 to firewall endpoint for that AZ-C
-- NetworkInspection-TgwAttach-A: 0.0.0.0/0 to firewall endpoint for that AZ-A
-- NetworkInspection-TgwAttach-B: 0.0.0.0/0 to firewall endpoint for that AZ-B
-- NetworkInspection-TgwAttach-C: 0.0.0.0/0 to firewall endpoint for that AZ-C
+- Go to VPC -> Firewall -> click on Firewall name -> Firewall Endpoints, take note the AZ-A-Firewall-Endpoint-ID 
+    - Go to VPC -> Route Table -> search for the AZ-A-Firewall-Endpoint-ID 
+    - Check NetworkInspection-Pub-A -> go to Route tab -> Edit Routes -> Add route
+    - Destination: 10.0.0.0/8 Target: AZ-A-Firewall-Endpoint-ID 
+    - Check NetworkInspection-TgwAttach-A -> go to Route tab -> Edit Routes -> Add route
+    - Destination: 0.0.0.0/0 Target: AZ-A-Firewall-Endpoint-ID 
+- Repeat step above for AZ-B and AZ-C using details below
 
 5. Set up Transit Gateway Attachment in Spoke/Member VPCs to Network-Transit-Gateway
 
@@ -316,7 +317,7 @@ Key Policy
     - Retain scanned snapshots when malware is detected for each region. 
         - Action: Go to "GuardDuty" --> "Malware Protection for EC2" --> "General Settings", and enable "Retain scanned snapshots when malware is detected."
 
-3. Enable **Security Hub** in management account for all the governed regions. Create a new Security Hub Central Configuration Policy in **"us-east-1"** that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
+3. Enable **Security Hub** in Audit account for all the governed regions. Create a new Security Hub Central Configuration Policy in **"us-east-1"** that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Security Hub --> Settings --> Regions
         - Enable cross-Region aggregation.
     - Choose Home Region: us-east-1
@@ -392,5 +393,6 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 
 3. Control Tower Backup enrollment failure
 - Error description "Insufficient privileges to create a backup vault. Creating a backup vault requires backup-storage and KMS permissions."
-    - Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
+- Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
 
+4. When deleting a StackSet, ensure to delete CloudWatch Logs Group resources before attempting to re-run the StackSet.

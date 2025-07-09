@@ -166,7 +166,7 @@ Parameters:
   # Backup Destination Account
   BackupDestinationAccountId:
     Type: String
-    Description: "Account ID of the backup destination account (for cross-account access)."
+    Description: "Account ID of the central backup destination account (for cross-account access)."
     Default: "123456789012"
     AllowedPattern: "^[0-9]{12}$"
     ConstraintDescription: "Must be a 12-digit numeric string"
