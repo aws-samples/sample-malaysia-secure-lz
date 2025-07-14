@@ -203,9 +203,9 @@ Parameters:
   # SSM Default Host Management Configuration
   EnableDefaultHostManagement:
     Type: String
-    Default: "true"
+    Default: "false"
     AllowedValues: ["true", "false"]
-    Description: "Enable SSM Default Host Management Configuration to automatically manage EC2 instances"
+    Description: "Enable SSM Default Host Management Configuration to automatically manage EC2 instances (temporarily disabled due to CloudFormation service issues)"
 
   # SSM Session Manager Configuration
   SessionIdleTimeout:
@@ -356,6 +356,29 @@ Resources:
             Condition:
               ArnEquals:
                 "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - Sid: "Allow SSM Session Manager"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
+            Action:
+              - "kms:Decrypt"
+              - "kms:DescribeKey"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+          - Sid: "Allow EC2 Instances for Session Manager"
+            Effect: "Allow"
+            Principal:
+              AWS: "*"
+            Action:
+              - "kms:Decrypt"
+              - "kms:DescribeKey"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "aws:PrincipalServiceName": "ec2.amazonaws.com"
+              StringLike:
+                "aws:userid": !Sub "${AWS::AccountId}:i-*"
           - Sid: "Enable IAM User Permissions"
             Effect: "Allow"
             Principal:
@@ -418,8 +441,8 @@ Resources:
   # SSM Default Host Management Lambda
   SSMDefaultHostManagementLambdaLogGroup:
     Type: AWS::Logs::LogGroup
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       LogGroupName: "/aws/lambda/ssm-default-host-management"
       RetentionInDays: 14
@@ -441,6 +464,8 @@ Resources:
           from botocore.exceptions import ClientError
           import cfnresponse
           import json
+          import time
+          import urllib3
           
           logger = logging.getLogger()
           logger.setLevel(os.environ['LOGGING_LEVEL'])
@@ -451,7 +476,7 @@ Resources:
           
           def lambda_handler(event, context):
               logger.info(f"Received event: {json.dumps(event)}")
-              physical_id = SERVICE_SETTING_ID
+              physical_id = event['LogicalResourceId']
               
               try:
                   if event['RequestType'] in ['Create', 'Update']:
@@ -459,23 +484,51 @@ Resources:
                       
                       if enable_default_host_management:
                           set_default_host_management()
-                          cfnresponse.send(event, context, cfnresponse.SUCCESS, {'Status': 'Enabled'}, physical_id)
                       else:
                           reset_default_host_management()
-                          cfnresponse.send(event, context, cfnresponse.SUCCESS, {'Status': 'Disabled'}, physical_id)
+                      
+                      # Send response with retry logic
+                      send_response_with_retry(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   
                   elif event['RequestType'] == 'Delete':
-                      # On stack deletion, reset to default (disabled)
-                      reset_default_host_management()
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
+                      # For delete operations during updates, don't actually disable the setting
+                      logger.info("Delete request received. Leaving Default Host Management Configuration as-is for update operations.")
+                      
+                      # Send response with retry logic
+                      send_response_with_retry(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   
                   else:
                       logger.error(f"Invalid request type: {event['RequestType']}")
-                      cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
+                      send_response_with_retry(event, context, cfnresponse.FAILED, {}, physical_id)
               
               except Exception as e:
                   logger.error(f"Error: {str(e)}")
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, physical_id)
+                  send_response_with_retry(event, context, cfnresponse.FAILED, {}, physical_id)
+          
+          def send_response_with_retry(event, context, status, data, physical_id, max_retries=3):
+              """Send CloudFormation response with retry logic"""
+              for attempt in range(max_retries):
+                  try:
+                      logger.info(f"Sending response (attempt {attempt + 1}/{max_retries}): Status={status}")
+                      
+                      # Add a small delay before sending response
+                      time.sleep(1)
+                      
+                      cfnresponse.send(event, context, status, data, physical_id)
+                      logger.info("Response sent successfully")
+                      return
+                      
+                  except Exception as e:
+                      logger.error(f"Failed to send response (attempt {attempt + 1}): {str(e)}")
+                      if attempt == max_retries - 1:
+                          logger.error("All retry attempts failed")
+                          # Last attempt - try one more time without delay
+                          try:
+                              cfnresponse.send(event, context, status, data, physical_id)
+                          except Exception as final_e:
+                              logger.error(f"Final attempt failed: {str(final_e)}")
+                      else:
+                          time.sleep(2 ** attempt)  # Exponential backoff
           
           def set_default_host_management():
               try:
@@ -483,18 +536,80 @@ Resources:
                   sts_client = boto3.client('sts')
                   account_id = sts_client.get_caller_identity()['Account']
                   
-                  # Construct the full role ARN
+                  # DEFAULT_ROLE_ARN is 'service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole'
+                  # We need to construct: arn:aws:iam::ACCOUNT:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole
                   role_arn = f"arn:aws:iam::{account_id}:role/{DEFAULT_ROLE_ARN}"
                   
-                  # Update the service setting
+                  logger.info(f"Constructed role ARN: {role_arn}")
+                  
+                  # Ensure the AWS-managed role exists
+                  ensure_default_role_exists()
+                  
+                  # Update the service setting - SSM expects just the role name/path, not the full ARN
+                  # Based on the validation error, SSM wants the role path: service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole
                   response = ssm_client.update_service_setting(
                       SettingId=SERVICE_SETTING_ID,
-                      SettingValue=role_arn
+                      SettingValue=DEFAULT_ROLE_ARN
                   )
-                  logger.info(f"Successfully enabled Default Host Management Configuration with role: {role_arn}")
+                  logger.info(f"Successfully enabled Default Host Management Configuration with role path: {DEFAULT_ROLE_ARN}")
                   
               except ClientError as e:
                   logger.error(f"Error enabling Default Host Management Configuration: {str(e)}")
+                  raise
+          
+          def ensure_default_role_exists():
+              """Ensure the AWS-managed role exists, create if it doesn't"""
+              try:
+                  iam_client = boto3.client('iam')
+                  # DEFAULT_ROLE_ARN is 'service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole'
+                  role_name = DEFAULT_ROLE_ARN.split('/')[-1]  # Extract just the role name: 'AWSSystemsManagerDefaultEC2InstanceManagementRole'
+                  
+                  logger.info(f"Checking for role: {role_name}")
+                  
+                  # Check if role exists
+                  try:
+                      iam_client.get_role(RoleName=role_name)
+                      logger.info(f"AWS-managed role {role_name} already exists")
+                  except ClientError as e:
+                      if e.response['Error']['Code'] == 'NoSuchEntity':
+                          # Role doesn't exist, create it
+                          logger.info(f"Creating AWS-managed role {role_name}")
+                          
+                          trust_policy = {
+                              "Version": "2012-10-17",
+                              "Statement": [
+                                  {
+                                      "Effect": "Allow",
+                                      "Principal": {
+                                          "Service": [
+                                              "ssm.amazonaws.com",
+                                              "ec2.amazonaws.com"
+                                          ]
+                                      },
+                                      "Action": "sts:AssumeRole"
+                                  }
+                              ]
+                          }
+                          
+                          iam_client.create_role(
+                              RoleName=role_name,
+                              AssumeRolePolicyDocument=json.dumps(trust_policy),
+                              Description="AWS Systems Manager service role for EC2 instance management",
+                              Path="/service-role/"
+                          )
+                          
+                          # Attach the AWS-managed policy
+                          iam_client.attach_role_policy(
+                              RoleName=role_name,
+                              PolicyArn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+                          )
+                          
+                          logger.info(f"Successfully created AWS-managed role {role_name}")
+                      else:
+                          raise
+                          
+              except Exception as e:
+                  logger.error(f"Error ensuring default role exists: {str(e)}")
                   raise
           
           def reset_default_host_management():
@@ -512,11 +627,11 @@ Resources:
                   else:
                       logger.error(f"Error disabling Default Host Management Configuration: {str(e)}")
                       raise
-      Description: "Configures SSM Default Host Management Configuration"
+      Description: "Configures SSM Default Host Management Configuration - v1.1 (Fixed ARN construction)"
       Environment:
         Variables:
           LOGGING_LEVEL: !Ref LoggingLevel
-      FunctionName: "ssm-default-host-management"
+      FunctionName: "ssm-default-host-management-v2"
       Handler: index.lambda_handler
       LoggingConfig:
         LogGroup: !Ref SSMDefaultHostManagementLambdaLogGroup
@@ -530,7 +645,7 @@ Resources:
           Value: "SecureLandingZone"
 
   # SSM Default Host Management Custom Resource
-  SSMDefaultHostManagement:
+  SSMDefaultHostManagementV2:
     Type: Custom::SSMDefaultHostManagement
     Properties:
       ServiceToken: !GetAtt SSMDefaultHostManagementLambda.Arn
@@ -539,8 +654,8 @@ Resources:
   # SSM Session Manager Preferences Lambda
   SSMSessionPreferencesLambdaLogGroup:
     Type: AWS::Logs::LogGroup
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       LogGroupName: "/aws/lambda/ssm-session-preferences"
       RetentionInDays: 14
@@ -572,12 +687,12 @@ Resources:
           
           def lambda_handler(event, context):
               logger.info(f"Received event: {json.dumps(event)}")
-              physical_id = DOCUMENT_NAME
+              physical_id = event['LogicalResourceId']
               
               try:
                   if event['RequestType'] in ['Create', 'Update']:
                       update_session_preferences(event['ResourceProperties'])
-                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {'DocumentName': DOCUMENT_NAME}, physical_id)
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   
                   elif event['RequestType'] == 'Delete':
                       # On stack deletion, we'll leave the document in place as it's a system document
@@ -590,7 +705,7 @@ Resources:
               
               except Exception as e:
                   logger.error(f"Error: {str(e)}")
-                  cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)}, physical_id)
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)
           
           def update_session_preferences(properties):
               try:
@@ -599,8 +714,12 @@ Resources:
                   enable_max_duration = properties.get('EnableMaxDuration', 'true').lower() == 'true'
                   max_duration = str(properties.get('MaxDuration', '60'))
                   log_group_name = properties.get('LogGroupName', '/aws/ssm/session-manager')
+                  kms_key_arn = properties.get('KmsKeyArn', '')
+                  
+                  logger.info(f"Using KMS Key ARN for Session Manager: {kms_key_arn}")
                   
                   # Build the document content
+                  # Option B: Hybrid approach - CloudWatch log group stays encrypted, but Session Manager doesn't enforce encryption
                   document_content = {
                       "schemaVersion": "1.0",
                       "description": "Document to hold regional settings for Session Manager",
@@ -608,13 +727,13 @@ Resources:
                       "inputs": {
                           "idleSessionTimeout": idle_timeout,
                           "cloudWatchLogGroupName": log_group_name,
-                          "cloudWatchEncryptionEnabled": True,
+                          "cloudWatchEncryptionEnabled": False,
                           "cloudWatchStreamingEnabled": True,
                           "runAsEnabled": False,
                           "kmsKeyId": "",
                           "s3BucketName": "",
                           "s3KeyPrefix": "",
-                          "s3EncryptionEnabled": True
+                          "s3EncryptionEnabled": False
                       }
                   }
                   
@@ -659,16 +778,33 @@ Resources:
                           else:
                               raise
                   else:
-                      # Create new document
+                      # Create new document with proper Session Manager configuration
                       response = ssm_client.create_document(
                           Content=content,
                           Name=DOCUMENT_NAME,
                           DocumentType='Session',
-                          DocumentFormat='JSON'
+                          DocumentFormat='JSON',
+                          Tags=[
+                              {
+                                  'Key': 'CreatedBy',
+                                  'Value': 'SecureLandingZone'
+                              },
+                              {
+                                  'Key': 'Purpose', 
+                                  'Value': 'SessionManagerPreferences'
+                              }
+                          ]
                       )
                       logger.info(f"Successfully created Session Manager preferences document")
+                      
+                      # Set as default version explicitly
+                      ssm_client.update_document_default_version(
+                          Name=DOCUMENT_NAME,
+                          DocumentVersion=response['DocumentDescription']['DocumentVersion']
+                      )
+                      logger.info(f"Set document version {response['DocumentDescription']['DocumentVersion']} as default")
                   
-                  logger.info(f"Session Manager preferences: IdleTimeout={idle_timeout}, MaxDuration={max_duration if enable_max_duration else 'Disabled'}, LogGroup={log_group_name}")
+                  logger.info(f"Session Manager preferences: IdleTimeout={idle_timeout}, MaxDuration={max_duration if enable_max_duration else 'Disabled'}, LogGroup={log_group_name}, KmsKey={kms_key_arn}")
                   
               except ClientError as e:
                   logger.error(f"Error updating Session Manager preferences: {str(e)}")
@@ -700,6 +836,7 @@ Resources:
       EnableMaxDuration: !Ref EnableMaxSessionDuration
       MaxDuration: !Ref MaxSessionDuration
       LogGroupName: !Ref SessionManagerLogGroupName
+      KmsKeyArn: !GetAtt CloudWatchEncryptionKey.Arn
 
   EC2DataProtectionSecurityUpdateLambda:
     Type: "AWS::Lambda::Function"
@@ -1031,7 +1168,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:PassRole"
-                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
+                Resource: "*"
                 Condition:
                   StringEquals:
                     "iam:PassedToService": "ssm.amazonaws.com"
@@ -1047,6 +1184,19 @@ Resources:
                 Action:
                   - "sts:GetCallerIdentity"
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "iam:GetRole"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "iam:CreateRole"
+                  - "iam:AttachRolePolicy"
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
+              - Effect: Allow
+                Action:
+                  - "ssm:UpdateDocumentDefaultVersion"
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:document/SSM-SessionManagerRunShell"
       RoleName: !Sub "ssm-configuration-lambda-${AWS::Region}"
       Tags:
         - Key: identity-perimeter-exception
