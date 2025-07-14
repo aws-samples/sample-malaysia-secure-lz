@@ -205,7 +205,7 @@ Parameters:
     Type: String
     Default: "false"
     AllowedValues: ["true", "false"]
-    Description: "Enable SSM Default Host Management Configuration to automatically manage EC2 instances (temporarily disabled due to CloudFormation service issues)"
+    Description: "Enable SSM Default Host Management Configuration to automatically manage EC2 instances"
 
   # SSM Session Manager Configuration
   SessionIdleTimeout:
@@ -627,7 +627,7 @@ Resources:
                   else:
                       logger.error(f"Error disabling Default Host Management Configuration: {str(e)}")
                       raise
-      Description: "Configures SSM Default Host Management Configuration - v1.1 (Fixed ARN construction)"
+      Description: "Configures SSM Default Host Management Configuration"
       Environment:
         Variables:
           LOGGING_LEVEL: !Ref LoggingLevel
@@ -718,8 +718,7 @@ Resources:
                   
                   logger.info(f"Using KMS Key ARN for Session Manager: {kms_key_arn}")
                   
-                  # Build the document content
-                  # Option B: Hybrid approach - CloudWatch log group stays encrypted, but Session Manager doesn't enforce encryption
+                  # Build the Session Manager document content
                   document_content = {
                       "schemaVersion": "1.0",
                       "description": "Document to hold regional settings for Session Manager",
@@ -829,7 +828,6 @@ Resources:
   # SSM Session Manager Preferences Custom Resource
   SSMSessionPreferences:
     Type: Custom::SSMSessionPreferences
-    DependsOn: SSMSessionPreferencesLambda
     Properties:
       ServiceToken: !GetAtt SSMSessionPreferencesLambda.Arn
       IdleTimeout: !Ref SessionIdleTimeout
