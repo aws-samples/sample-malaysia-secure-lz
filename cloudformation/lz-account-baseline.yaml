@@ -570,6 +570,28 @@ Resources:
                   try:
                       iam_client.get_role(RoleName=role_name)
                       logger.info(f"AWS-managed role {role_name} already exists")
+                      
+                      # Check if CloudWatch policy is attached, if not attach it
+                      try:
+                          attached_policies = iam_client.list_attached_role_policies(RoleName=role_name)
+                          cloudwatch_policy_attached = any(
+                              policy['PolicyArn'] == "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+                              for policy in attached_policies['AttachedPolicies']
+                          )
+                          
+                          if not cloudwatch_policy_attached:
+                              logger.info(f"Attaching CloudWatch Agent policy to existing role {role_name}")
+                              iam_client.attach_role_policy(
+                                  RoleName=role_name,
+                                  PolicyArn="arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+                              )
+                              logger.info(f"Successfully attached CloudWatch Agent policy to existing role {role_name}")
+                          else:
+                              logger.info(f"CloudWatch Agent policy already attached to role {role_name}")
+                      except Exception as policy_e:
+                          logger.error(f"Error checking/attaching CloudWatch policy: {str(policy_e)}")
+                          # Don't fail the whole operation if policy attachment fails
+                          
                   except ClientError as e:
                       if e.response['Error']['Code'] == 'NoSuchEntity':
                           # Role doesn't exist, create it
@@ -598,13 +620,19 @@ Resources:
                               Path="/service-role/"
                           )
                           
-                          # Attach the AWS-managed policy
+                          # Attach the AWS-managed policies
                           iam_client.attach_role_policy(
                               RoleName=role_name,
                               PolicyArn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
                           )
                           
-                          logger.info(f"Successfully created AWS-managed role {role_name}")
+                          # Attach CloudWatch Agent policy for Session Manager logging
+                          iam_client.attach_role_policy(
+                              RoleName=role_name,
+                              PolicyArn="arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+                          )
+                          
+                          logger.info(f"Successfully created AWS-managed role {role_name} with SSM and CloudWatch permissions")
                       else:
                           raise
                           
@@ -631,7 +659,7 @@ Resources:
       Environment:
         Variables:
           LOGGING_LEVEL: !Ref LoggingLevel
-      FunctionName: "ssm-default-host-management-v2"
+      FunctionName: "ssm-default-host-management"
       Handler: index.lambda_handler
       LoggingConfig:
         LogGroup: !Ref SSMDefaultHostManagementLambdaLogGroup
@@ -645,7 +673,7 @@ Resources:
           Value: "SecureLandingZone"
 
   # SSM Default Host Management Custom Resource
-  SSMDefaultHostManagementV2:
+  SSMDefaultHostManagement:
     Type: Custom::SSMDefaultHostManagement
     Properties:
       ServiceToken: !GetAtt SSMDefaultHostManagementLambda.Arn
@@ -1190,6 +1218,7 @@ Resources:
                 Action:
                   - "iam:CreateRole"
                   - "iam:AttachRolePolicy"
+                  - "iam:ListAttachedRolePolicies"
                 Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
               - Effect: Allow
                 Action:
