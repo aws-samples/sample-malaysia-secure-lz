@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Set delegated administration account for AWS native security services Security Hub, GuardDuty, and IAM Access Analyzer at AWS Organization level."
+Description: "Set delegated administration account for AWS native security services Security Hub, GuardDuty, IAM Access Analyzer, and Amazon Inspector at AWS Organization level."
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -15,6 +15,7 @@ Metadata:
           - GuardDutyEnable
           - SecurityHubEnable
           - IAMAccessAnalyzerEnable
+          - InspectorEnable
       - Label:
           default: "Security Services Configuration"
     ParameterLabels:
@@ -26,6 +27,8 @@ Metadata:
         default: "Security Hub"
       IAMAccessAnalyzerEnable:
         default: "IAM Access Analyzer"
+      InspectorEnable:
+        default: "Amazon Inspector"
       LoggingLevel:
         default: "Logging Level"
 
@@ -49,6 +52,11 @@ Parameters:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: "Enable IAM Access Analyzer to identify unauthorized external sharing of resources."
+    Type: String
+  Inspector:
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: "Enable Amazon Inspector for vulnerability assessment and security monitoring."
     Type: String
   EncryptionKeyAdministratorArn:
     Type: String
@@ -113,6 +121,14 @@ Resources:
                   - "organizations:DescribeOrganization"
                   - "organizations:ListAccounts"
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "iam:CreateServiceLinkedRole"
+                  - "iam:GetRole"
+                  - "iam:ListRoles"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/inspector2.amazonaws.com/AWSServiceRoleForAmazonInspector2"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/*"
       RoleName: !Sub "security-services-admin-delegation-lambda-${AWS::Region}"
       Tags:
         - Key: "CreatedBy"
@@ -133,6 +149,7 @@ Resources:
           logger = logging.getLogger()
           logger.setLevel(os.environ['LOGGING_LEVEL'])
           guardduty_client = boto3.client("guardduty")
+          inspector_client = boto3.client("inspector2")
           organizations_client = boto3.client("organizations")
           sts_client = boto3.client('sts')
           account_id = sts_client.get_caller_identity()["Account"]
@@ -150,10 +167,15 @@ Resources:
                           set_guardduty_organization_admin(delegated_admin_account_id)
                       elif event['ResourceProperties']['GuardDuty'] == 'false':
                           reset_guardduty_organization_admin(delegated_admin_account_id)
+                      if event['ResourceProperties']['Inspector'] == 'true':
+                          set_inspector_organization_admin(delegated_admin_account_id)
+                      elif event['ResourceProperties']['Inspector'] == 'false':
+                          reset_inspector_organization_admin(delegated_admin_account_id)
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   elif event['RequestType'] == 'Delete':
                       reset_service_organization_admin(delegated_admin_account_id, 'access-analyzer.amazonaws.com')
                       reset_guardduty_organization_admin(delegated_admin_account_id)
+                      reset_inspector_organization_admin(delegated_admin_account_id)
                       cfnresponse.send(event, context, cfnresponse.SUCCESS, {}, physical_id)
                   else:
                       logger.error(f"Invalid request type: {event['RequestType']}")
@@ -195,6 +217,23 @@ Resources:
               except ClientError as e:
                   logger.error(f"Error resetting GuardDuty delegated security admin account configuration: {str(e)}")
                   raise
+          def set_inspector_organization_admin(account_id):
+              try:
+                  inspector_client.enable_delegated_admin_account(delegatedAdminAccountId=account_id)
+                  logger.info("Inspector delegated security admin account updated successfully")
+              except ClientError as e:
+                  if 'already enabled' in e.response['Error']['Message'].lower():
+                      logger.info(f"Inspector delegated security admin account {account_id} is already a delegated administrator for your organization. {str(e)}")
+                  else:
+                      logger.error(f"Error updating Inspector delegated security admin account configuration: {str(e)}")
+                      raise
+          def reset_inspector_organization_admin(account_id):
+              try:
+                  inspector_client.disable_delegated_admin_account(delegatedAdminAccountId=account_id)
+                  logger.info("Inspector delegated security admin account reset successfully")
+              except ClientError as e:
+                  logger.error(f"Error resetting Inspector delegated security admin account configuration: {str(e)}")
+                  raise
       Description: "Updates and deletes the AWS native Security Services admin delegation configuration at organization level in a region."
       Environment:
         Variables:
@@ -227,21 +266,20 @@ Resources:
 
   SecurityServicesAdminCloudWatchEncryptionKey:
     Type: "AWS::KMS::Key"
-    Properties: 
+    Properties:
       Description: "Security Services Admin Delegation CloudWatch LogGroup Key"
       EnableKeyRotation: true
-      KeyPolicy: 
+      KeyPolicy:
         Version: "2012-10-17"
         Id: "key-default-1"
-        Statement: 
-          - 
-            Sid: "Allow Key Administration"
+        Statement:
+          - Sid: "Allow Key Administration"
             Effect: "Allow"
-            Principal: 
-              AWS: 
-              - !Ref EncryptionKeyAdministratorArn
-              - !Sub arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole
-            Action: 
+            Principal:
+              AWS:
+                - !Ref EncryptionKeyAdministratorArn
+                - !Sub arn:aws:iam::${AWS::AccountId}:role/AWSCloudFormationStackSetExecutionRole
+            Action:
               - "kms:Create*"
               - "kms:Describe*"
               - "kms:Enable*"
@@ -258,12 +296,11 @@ Resources:
               - "kms:TagResource"
               - "kms:UntagResource"
             Resource: "*"
-          - 
-            Sid: "Allow CloudWatch Logs Service"
+          - Sid: "Allow CloudWatch Logs Service"
             Effect: "Allow"
-            Principal: 
+            Principal:
               Service: !Sub logs.${AWS::Region}.amazonaws.com
-            Action: 
+            Action:
               - "kms:Decrypt*"
               - "kms:Encrypt*"
               - "kms:GenerateDataKey*"
@@ -273,12 +310,11 @@ Resources:
             Condition:
               ArnEquals:
                 "kms:EncryptionContext:aws:logs:arn": !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
-          - 
-            Sid: "Enable IAM User Permissions"
+          - Sid: "Enable IAM User Permissions"
             Effect: "Allow"
-            Principal: 
+            Principal:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
-            Action: 
+            Action:
               - "kms:*"
             Resource: "*"
       Tags:
@@ -297,6 +333,7 @@ Resources:
       GuardDuty: !Ref GuardDuty
       SecurityHub: !Ref SecurityHub
       IAMAccessAnalyzer: !Ref IAMAccessAnalyzer
+      Inspector: !Ref Inspector
       DelegatedSecurityAdminAccount: !Ref DelegatedSecurityAdminAccount
       ServiceToken: !GetAtt SecurityServicesAdminDelegationLambda.Arn
 
