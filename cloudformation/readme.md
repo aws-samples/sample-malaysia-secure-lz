@@ -357,8 +357,15 @@ Key Policy
         - AnalyzerType: ORGANIZATION
 
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
-1. Login to each of the accounts, especially SharedServices, Workload accounts for SSM.
-2. Enable "Default Host Configuration" from SSM Fleet Manager. https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
+**Note: SSM Default Host Management Configuration and Session Manager preferences are now automatically configured through the lz-account-baseline StackSet (Step 10).**
+
+The following SSM features are automatically enabled:
+- **Default Host Management Configuration**: EC2 instances are automatically managed by SSM without manual IAM configuration
+- **Session Manager Preferences**: 
+  - Idle timeout: 20 minutes (configurable)
+  - Maximum session duration: 60 minutes (configurable)
+  - Session logging to CloudWatch Logs with encryption
+  - Log retention: 90 days
 
 
 ## Configure AWS Backup Plan and Policies
@@ -396,6 +403,4 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 
 4. Control Tower Backup enrollment failure
 - Error description "Insufficient privileges to create a backup vault. Creating a backup vault requires backup-storage and KMS permissions."
-- Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
-
-
+- Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions.
