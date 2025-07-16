@@ -362,7 +362,7 @@ Key Policy
 The following SSM features are automatically enabled:
 - **Default Host Management Configuration**: EC2 instances are automatically managed by SSM without manual IAM configuration
 - **Session Manager Preferences**: 
-  - Idle timeout: 15 minutes (configurable)
+  - Idle timeout: 20 minutes (configurable)
   - Maximum session duration: 60 minutes (configurable)
   - Session logging to CloudWatch Logs with encryption
   - Log retention: 90 days

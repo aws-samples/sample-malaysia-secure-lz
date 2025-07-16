@@ -203,17 +203,17 @@ Parameters:
   # SSM Default Host Management Configuration
   EnableDefaultHostManagement:
     Type: String
-    Default: "false"
+    Default: "true"
     AllowedValues: ["true", "false"]
     Description: "Enable SSM Default Host Management Configuration to automatically manage EC2 instances"
 
   # SSM Session Manager Configuration
   SessionIdleTimeout:
     Type: Number
-    Default: 15
+    Default: 20
     MinValue: 1
     MaxValue: 60
-    Description: "Session Manager idle timeout in minutes (1-60). Default is 15 minutes for security best practice."
+    Description: "Session Manager idle timeout in minutes (1-60). Default is 20 minutes for security best practice."
 
   EnableMaxSessionDuration:
     Type: String
@@ -738,7 +738,7 @@ Resources:
           def update_session_preferences(properties):
               try:
                   # Extract properties
-                  idle_timeout = str(properties.get('IdleTimeout', '15'))
+                  idle_timeout = str(properties.get('IdleTimeout', '20'))
                   enable_max_duration = properties.get('EnableMaxDuration', 'true').lower() == 'true'
                   max_duration = str(properties.get('MaxDuration', '60'))
                   log_group_name = properties.get('LogGroupName', '/aws/ssm/session-manager')
@@ -1194,7 +1194,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:PassRole"
-                Resource: "*"
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
                 Condition:
                   StringEquals:
                     "iam:PassedToService": "ssm.amazonaws.com"
