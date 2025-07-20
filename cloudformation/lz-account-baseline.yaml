@@ -315,6 +315,7 @@ Resources:
 
   CloudWatchEncryptionKey:
     Type: "AWS::KMS::Key"
+    DependsOn: AWSSystemsManagerDefaultEC2InstanceManagementRole
     Properties:
       Description: "Account Baseline CloudWatch LogGroup Key"
       EnableKeyRotation: true
@@ -359,7 +360,7 @@ Resources:
           - Sid: "Allow SSM Session Manager"
             Effect: "Allow"
             Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
+              AWS: !GetAtt AWSSystemsManagerDefaultEC2InstanceManagementRole.Arn
             Action:
               - "kms:Decrypt"
               - "kms:DescribeKey"
@@ -395,6 +396,29 @@ Resources:
     Properties:
       AliasName: !FindInMap [Constants, KMSAlias, Name]
       TargetKeyId: !Ref CloudWatchEncryptionKey
+
+  # SSM Default EC2 Instance Management Role
+  AWSSystemsManagerDefaultEC2InstanceManagementRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "AWSSystemsManagerDefaultEC2InstanceManagementRole-${AWS::Region}"
+      Path: /service-role/
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ssm.amazonaws.com
+                - ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Description: "AWS Systems Manager service role for EC2 instance management"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      Tags:
+        - Key: "CreatedBy"
+          Value: "SecureLandingZone"
 
   # EC2 Security Configuration
   EC2LambdaExecutionRole:
@@ -453,6 +477,7 @@ Resources:
 
   SSMDefaultHostManagementLambda:
     Type: AWS::Lambda::Function
+    DependsOn: AWSSystemsManagerDefaultEC2InstanceManagementRole
     Properties:
       Architectures:
         - x86_64
@@ -465,14 +490,15 @@ Resources:
           import cfnresponse
           import json
           import time
-          import urllib3
           
           logger = logging.getLogger()
           logger.setLevel(os.environ['LOGGING_LEVEL'])
           ssm_client = boto3.client('ssm')
           
           SERVICE_SETTING_ID = '/ssm/managed-instance/default-ec2-instance-management-role'
-          DEFAULT_ROLE_ARN = 'service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole'
+          # Dynamically construct role ARN with region suffix
+          region = boto3.Session().region_name
+          DEFAULT_ROLE_ARN = f'service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole-{region}'
           
           def lambda_handler(event, context):
               logger.info(f"Received event: {json.dumps(event)}")
@@ -532,21 +558,8 @@ Resources:
           
           def set_default_host_management():
               try:
-                  # Get current account ID
-                  sts_client = boto3.client('sts')
-                  account_id = sts_client.get_caller_identity()['Account']
+                  logger.info(f"Configuring Default Host Management with role: {DEFAULT_ROLE_ARN}")
                   
-                  # DEFAULT_ROLE_ARN is 'service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole'
-                  # We need to construct: arn:aws:iam::ACCOUNT:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole
-                  role_arn = f"arn:aws:iam::{account_id}:role/{DEFAULT_ROLE_ARN}"
-                  
-                  logger.info(f"Constructed role ARN: {role_arn}")
-                  
-                  # Ensure the AWS-managed role exists
-                  ensure_default_role_exists()
-                  
-                  # Update the service setting - SSM expects just the role name/path, not the full ARN
-                  # Based on the validation error, SSM wants the role path: service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole
                   response = ssm_client.update_service_setting(
                       SettingId=SERVICE_SETTING_ID,
                       SettingValue=DEFAULT_ROLE_ARN
@@ -555,89 +568,6 @@ Resources:
                   
               except ClientError as e:
                   logger.error(f"Error enabling Default Host Management Configuration: {str(e)}")
-                  raise
-          
-          def ensure_default_role_exists():
-              """Ensure the AWS-managed role exists, create if it doesn't"""
-              try:
-                  iam_client = boto3.client('iam')
-                  # DEFAULT_ROLE_ARN is 'service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole'
-                  role_name = DEFAULT_ROLE_ARN.split('/')[-1]  # Extract just the role name: 'AWSSystemsManagerDefaultEC2InstanceManagementRole'
-                  
-                  logger.info(f"Checking for role: {role_name}")
-                  
-                  # Check if role exists
-                  try:
-                      iam_client.get_role(RoleName=role_name)
-                      logger.info(f"AWS-managed role {role_name} already exists")
-                      
-                      # Check if CloudWatch policy is attached, if not attach it
-                      try:
-                          attached_policies = iam_client.list_attached_role_policies(RoleName=role_name)
-                          cloudwatch_policy_attached = any(
-                              policy['PolicyArn'] == "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-                              for policy in attached_policies['AttachedPolicies']
-                          )
-                          
-                          if not cloudwatch_policy_attached:
-                              logger.info(f"Attaching CloudWatch Agent policy to existing role {role_name}")
-                              iam_client.attach_role_policy(
-                                  RoleName=role_name,
-                                  PolicyArn="arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-                              )
-                              logger.info(f"Successfully attached CloudWatch Agent policy to existing role {role_name}")
-                          else:
-                              logger.info(f"CloudWatch Agent policy already attached to role {role_name}")
-                      except Exception as policy_e:
-                          logger.error(f"Error checking/attaching CloudWatch policy: {str(policy_e)}")
-                          # Don't fail the whole operation if policy attachment fails
-                          
-                  except ClientError as e:
-                      if e.response['Error']['Code'] == 'NoSuchEntity':
-                          # Role doesn't exist, create it
-                          logger.info(f"Creating AWS-managed role {role_name}")
-                          
-                          trust_policy = {
-                              "Version": "2012-10-17",
-                              "Statement": [
-                                  {
-                                      "Effect": "Allow",
-                                      "Principal": {
-                                          "Service": [
-                                              "ssm.amazonaws.com",
-                                              "ec2.amazonaws.com"
-                                          ]
-                                      },
-                                      "Action": "sts:AssumeRole"
-                                  }
-                              ]
-                          }
-                          
-                          iam_client.create_role(
-                              RoleName=role_name,
-                              AssumeRolePolicyDocument=json.dumps(trust_policy),
-                              Description="AWS Systems Manager service role for EC2 instance management",
-                              Path="/service-role/"
-                          )
-                          
-                          # Attach the AWS-managed policies
-                          iam_client.attach_role_policy(
-                              RoleName=role_name,
-                              PolicyArn="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-                          )
-                          
-                          # Attach CloudWatch Agent policy for Session Manager logging
-                          iam_client.attach_role_policy(
-                              RoleName=role_name,
-                              PolicyArn="arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-                          )
-                          
-                          logger.info(f"Successfully created AWS-managed role {role_name} with SSM and CloudWatch permissions")
-                      else:
-                          raise
-                          
-              except Exception as e:
-                  logger.error(f"Error ensuring default role exists: {str(e)}")
                   raise
           
           def reset_default_host_management():
@@ -1194,7 +1124,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "iam:PassRole"
-                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole-${AWS::Region}"
                 Condition:
                   StringEquals:
                     "iam:PassedToService": "ssm.amazonaws.com"
@@ -1205,25 +1135,12 @@ Resources:
                   - "ssm:DeleteDocument"
                   - "ssm:GetDocument"
                   - "ssm:DescribeDocument"
+                  - "ssm:UpdateDocumentDefaultVersion"
                 Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:document/SSM-SessionManagerRunShell"
               - Effect: Allow
                 Action:
                   - "sts:GetCallerIdentity"
                 Resource: "*"
-              - Effect: Allow
-                Action:
-                  - "iam:GetRole"
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - "iam:CreateRole"
-                  - "iam:AttachRolePolicy"
-                  - "iam:ListAttachedRolePolicies"
-                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSSystemsManagerDefaultEC2InstanceManagementRole"
-              - Effect: Allow
-                Action:
-                  - "ssm:UpdateDocumentDefaultVersion"
-                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:document/SSM-SessionManagerRunShell"
       RoleName: !Sub "ssm-configuration-lambda-${AWS::Region}"
       Tags:
         - Key: identity-perimeter-exception
@@ -1273,6 +1190,12 @@ Outputs:
   SessionManagerPreferencesStatus:
     Description: "Session Manager preferences configuration status"
     Value: !Sub "Configured - Idle timeout: ${SessionIdleTimeout} minutes, Max duration: ${MaxSessionDuration} minutes"
+
+  AWSSystemsManagerDefaultEC2InstanceManagementRoleArn:
+    Description: "ARN of the AWS Systems Manager Default EC2 Instance Management Role"
+    Value: !GetAtt AWSSystemsManagerDefaultEC2InstanceManagementRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-AWSSystemsManagerDefaultEC2InstanceManagementRoleArn"
 
 Conditions:
   IsS3BlockingEnabled: !And
