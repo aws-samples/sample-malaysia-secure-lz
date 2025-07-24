@@ -23,7 +23,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 | Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | Manual Configuration |
 | Logging and Monitoring | S3 Access Logs | 7.3.1 | PENDING |  
 | Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
-| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | PENDING |
+| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Manual Configuration |
 | Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | Manual Configuration |
 
 
@@ -319,7 +319,7 @@ Key Policy
 
 3. Enable **Security Hub** in Audit account for all the governed regions. Create a new Security Hub Central Configuration Policy in **"us-east-1"** that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
     - Security Hub --> Settings --> Regions
-        - Enable cross-Region aggregation.
+        - Enable Cross-Region aggregation.
     - Choose Home Region: us-east-1
     - Choose Linked Regions: ap-southeast-5
     - Select "Configuration type" as "Customize my Security Hub Configuration". 
@@ -356,9 +356,21 @@ Key Policy
     - Parameter: 
         - AnalyzerType: ORGANIZATION
 
+7. In the **Audit** account, activate Amazon Inspector for required member accounts, specifically workload accounts in ap-southeast-5 region.
+    - Amazon Inspector -> Account Management - Accounts(Tab)
+    - Toggle ON Automatically activate Inspector for new member accounts
+    - In Organization section, select the accounts with workloads, click on Activate --> All Scanning
+
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
-1. Login to each of the accounts, especially SharedServices, Workload accounts for SSM.
-2. Enable "Default Host Configuration" from SSM Fleet Manager. https://docs.aws.amazon.com/systems-manager/latest/userguide/fleet-manager-default-host-management-configuration.html
+**Note: SSM Default Host Management Configuration and Session Manager preferences are now automatically configured through the lz-account-baseline StackSet (Step 10).**
+
+The following SSM features are automatically enabled:
+- **Default Host Management Configuration**: EC2 instances are automatically managed by SSM without manual IAM configuration
+- **Session Manager Preferences**: 
+  - Idle timeout: 20 minutes (configurable)
+  - Maximum session duration: 60 minutes (configurable)
+  - Session logging to CloudWatch Logs with encryption
+  - Log retention: 90 days
 
 
 ## Configure AWS Backup Plan and Policies
@@ -396,6 +408,4 @@ An Organization CloudTrail for S3 Data events is used to monitor and log access 
 
 4. Control Tower Backup enrollment failure
 - Error description "Insufficient privileges to create a backup vault. Creating a backup vault requires backup-storage and KMS permissions."
-- Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions. 
-
-
+- Review the KMS Key used for Control Tower Backup, to ensure that the region key replication is the same as Control Tower governed regions.
