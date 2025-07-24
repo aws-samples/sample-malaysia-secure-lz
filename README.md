@@ -23,7 +23,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 | Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | Manual Configuration |
 | Logging and Monitoring | S3 Access Logs | 7.3.1 | PENDING |  
 | Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
-| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | PENDING |
+| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Manual Configuration |
 | Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | Manual Configuration |
 
 
@@ -42,8 +42,8 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
     - Threat Detection: GuardDuty
     - Compliance Monitoring: Security Hub and Config
     - Security Alert Notification: SNS Topic
-    - BACKLOG: Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
-    - BACKLOG: Inspector, Detective, Firewall Manager (pending availability in region)
+    - Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
+    - BACKLOG: Detective, Firewall Manager (pending availability in region)
 4. IAM: Control Tower IAM Identity Center with identity federation to organization's Identity Provider (IdP). 
     - IAM Access Analyzer with Zone of Trust to "Organization" 
     - Organization Central Root management
