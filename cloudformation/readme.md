@@ -23,7 +23,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 | Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | Manual Configuration |
 | Logging and Monitoring | S3 Access Logs | 7.3.1 | PENDING |  
 | Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
-| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Manual |
+| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Manual Configuration |
 | Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | Manual Configuration |
 
 
@@ -355,6 +355,7 @@ Key Policy
     - StackName: "lz-audit-access-analyzer"
     - Parameter: 
         - AnalyzerType: ORGANIZATION
+
 7. In the **Audit** account, activate Amazon Inspector for required member accounts, specifically workload accounts in ap-southeast-5 region.
     - Amazon Inspector -> Account Management - Accounts(Tab)
     - Toggle ON Automatically activate Inspector for new member accounts
