@@ -355,6 +355,10 @@ Key Policy
     - StackName: "lz-audit-access-analyzer"
     - Parameter: 
         - AnalyzerType: ORGANIZATION
+7. In the **Audit** account, Activate Amazon Inspector for required member accounts, specifically workload accounts in ap-southeast-5 region.
+    - Amazon Inspector ->  Account Management - Accounts(Tab)
+    - Toggle ON Automatically activate Inspector for new member accounts
+    - In Organization section, select the workload accounts, Click on Activate --> All Scanning
 
 ## Configure AWS Systems Manager (SSM) for EC2 inventory management
 **Note: SSM Default Host Management Configuration and Session Manager preferences are now automatically configured through the lz-account-baseline StackSet (Step 10).**
