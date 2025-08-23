@@ -20,7 +20,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 | Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | 7.1.3, 7.5.1 | lz-central-network.json |
 | Security Assurance | Security Hub | 7.5.7, 12.1.2, 12.1.3, 12.1.5 | Manual Configuration |
 | Logging and Monitoring | Organization CloudTrail (multi-region, management events), as part of Control Tower | 7.3.1, 7.5.4, 12.3.3 | Manual Configuration | 
-| Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | Manual Configuration |
+| Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | lz-account-baseline.yaml |
 | Logging and Monitoring | S3 Access Logs | 7.3.1 | PENDING |  
 | Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
 | Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Manual Configuration |
@@ -35,7 +35,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 2. Logging: Control Tower using log-archive account
     - Organization CloudTrail
     - S3 Access Logs
-    - BACKLOG: SSM Session Logs
+    - SSM Session Logs
     - BACKLOG: WAF Logs
     - BACKLOG: VPC Flow Logs
 3. Security: Control Tower using audit account as the delegated security admin for GuardDuty, and Security Hub
@@ -43,7 +43,8 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
     - Compliance Monitoring: Security Hub and Config
     - Security Alert Notification: SNS Topic
     - Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
-    - BACKLOG: Detective, Firewall Manager (pending availability in region)
+    - Firewall Manager: centralized network configuration management for security groups, and WAF by policy enforcement
+    - BACKLOG: Detective (pending availability in region)
 4. IAM: Control Tower IAM Identity Center with identity federation to organization's Identity Provider (IdP). 
     - IAM Access Analyzer with Zone of Trust to "Organization" 
     - Organization Central Root management
@@ -51,7 +52,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
     - VPC created subnets (app-private, db-private, public) across 3 availability zones.
     - Use VPC interface endpoints for privatelink access to AWS services (S3, SSM, SSMMessages, EC2, Log, KMS, Secrets Manager, ECR)
     - (optional) Customers can choose to deploy either AWS Network Firewall or their preferred network firewall e.g. Palo Alto or Fortinet as virtual appliances running as EC2 instances.
-    - BACKLOG: Firewall Manager Policies (GA date unknown)
+    - BACKLOG: Firewall Manager Policies
     - BACKLOG: WAF: Baseline WAF configuration to attach to publicly accessible resources.
 6. Data Protection:
     - KMS Customer Managed Keys (KMS-CMK) 
