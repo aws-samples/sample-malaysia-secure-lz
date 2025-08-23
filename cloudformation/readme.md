@@ -20,7 +20,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 | Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | 7.1.3, 7.5.1 | lz-central-network.json |
 | Security Assurance | Security Hub | 7.5.7, 12.1.2, 12.1.3, 12.1.5 | Manual Configuration |
 | Logging and Monitoring | Organization CloudTrail (multi-region, management events), as part of Control Tower | 7.3.1, 7.5.4, 12.3.3 | Manual Configuration | 
-| Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | Manual Configuration |
+| Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | lz-account-baseline.yaml |
 | Logging and Monitoring | S3 Access Logs | 7.3.1 | PENDING |  
 | Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
 | Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Manual Configuration |
@@ -32,7 +32,7 @@ Complete these validation checks before starting the deployment of the SLZ.
 1. AWS management account has been created. 
 2. Create an IAM user with Administrator access. Log in as this user.
 3. Prepare an AWS Organization (without AWS Control Tower) in management account. Go to AWS Organization, and "Create an organization". Take note of the Organization ID (o-xxx), that will be used in subsequent installation steps.
-4. Create a "Shared Services" account that is used for backup administration, IAM Identity Center administration delegation and other common cloud operation actions. This will be required during Control Tower Backup setup.
+4. Create a "Shared Services" account that is used for backup administration,    administration delegation and other common cloud operation actions. This will be required during Control Tower Backup setup.
 5. Create a "Central Backup" account that is used for the central storage of backups. This will be required during Control Tower Backup setup.
 6. AWS environment does not have any running workloads and services. 
 7. All deny Service Control Policies (SCPs) and Resource Control Policies (RCPs) are detached from OUs.
