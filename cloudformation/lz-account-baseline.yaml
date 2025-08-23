@@ -1136,6 +1136,7 @@ Resources:
                   - "ssm:GetDocument"
                   - "ssm:DescribeDocument"
                   - "ssm:UpdateDocumentDefaultVersion"
+                  - "ssm:AddTagsToResource"
                 Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:document/SSM-SessionManagerRunShell"
               - Effect: Allow
                 Action:
