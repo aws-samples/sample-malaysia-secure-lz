@@ -230,7 +230,8 @@ Key Policy
 | SLZDeveloperAccess | ReadOnlyAccess, AmazonQDeveloperAccess, AWSCodeBuildDeveloperAccess, AmazonEC2FullAccess, AmazonS3FullAccess, AmazonDynamoDBFullAccess, AWSLambda_FullAccess, AmazonRDSFullAccess. AmazonSageMakerFullAccess, AmazonCloudWatchEvidentlyFullAccess | Used by Developers to work productively in development accounts. |
 | SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
 
-14. Setup centralized networking account. 
+14. Setup centralized networking account.
+    - ⚠️ **Recommendation:** Please seek assistance from an **AWS Partner** for planning or implementing the **Centralized Networking account**.
     - Create a new "Centralized Networking" account from Control Tower.
     - Delete the "default VPC" in the networking account before deploying the CloudFormation script. 
     - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ORGANIZATION-ID/INFRASTRUCTURE-OU-ID
@@ -251,6 +252,8 @@ Key Policy
         - Set the DelegatedIPAMAdminAccount to the network account.         
 
 ## Post CloudFormation deployment configuration
+- ⚠️ **Recommendation:** Please seek assistance from an **AWS Partner** for planning or implementing the **Centralized Networking account**.
+
 1. Perform these configurations in central network account
 - Login into central network account > VPC > Network Firewall
 - Setup Firewall unmanaged rule group (Your rule group tab) (Stateful, Domain List, Strict Order)
