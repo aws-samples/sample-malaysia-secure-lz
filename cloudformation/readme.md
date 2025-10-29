@@ -210,10 +210,12 @@ Key Policy
 
 12. Enable **IAM Access Analyzer** in the management account in region ap-southeast-5 that will create the IAM Access Analyzer service role 'AWSServiceRoleForAccessAnalyzer'. 
     - Go to IAM Access Analyzer --> Create Access Analzyer 
-        - AnalyzerType: ACCOUNT
+        - Zone of Trust: Current Account
 
 13. Configure IAM Identity Center (IDC). IDC is used for all of the organization users to access the AWS environment for a single-sign-on experience.
     - Configure one of the accounts e.g. Shared Services account as the delegated administrator for IAM IDC. 
+        - Go to IAM Identity Center (IDC) > Setting > Management > Register Account
+        - set Shared Services account as the delegated administrator
     - Configure these required IAM Permission Sets.
         - Deployment Account: management account
         - Deployment Region: Malaysia ap-southeast-5 region where IDC instance is deployed
@@ -232,30 +234,58 @@ Key Policy
 
 14. Setup centralized networking account.
     - ⚠️ **Recommendation:** Please seek assistance from an **AWS Partner** for planning or implementing the **Centralized Networking account**.
-    - Create a new "Centralized Networking" account from Control Tower.
-    - Delete the "default VPC" in the networking account before deploying the CloudFormation script. 
-    - Identify the OU identifer (format ou-XXXXXX) to share the new Transit-Gateway resource with. This should be specified as the parameter in the format arn:aws:organizations::ACCOUNT-ID:ou/ORGANIZATION-ID/INFRASTRUCTURE-OU-ID
+    - Create a new "Central Network" account from Control Tower Account Factory.
+        - Place the account under Infrastructure OU
+        - Create new Network Admin user (will use this user to further configure central network account in next steps)
+    - Delete the "default VPC" (aws-controltower-VPC) and its related network resources in the central network account before deploying the CloudFormation script. 
+    - Obtain Management Account ID
+        1. Login to **management account**
+        2. Navigate to: **AWS Organizations** > **Organization Structure**
+        3. Select account with label **management account**
+        4. Copy the **Account ID** (12-digit)
+    - Obtain Organization ID
+        1. In AWS Organizations console, note the **Organization ID** (format: `o-xxxxxxxxxx`)
+        2. This can be found in the top-right of the Organizations dashboard
+    - Obtain Infrastructure OU ID
+        1. Login to **management account**
+        2. Navigate to: **AWS Organizations** > **Organization Structure**
+        3. Select **Infrastructure OU**
+        4. Copy the **OU ID** (format: `ou-xxxx-xxxxxxx`)
+    - Construct the complete ARN as follows:
+        ```
+        arn:aws:organizations::{MANAGEMENT-ACCOUNT-ID}:ou/{ORGANIZATION-ID}/{INFRASTRUCTURE-OU-ID}
+        ```
+
+        **Example:**
+        ```
+        arn:aws:organizations::123456789012:ou/o-abcdefghijk/ou-abcd-12345678
+        ```
+
     - Login to new network account to run CloudFormation script that deploys the VPC, AWS Network Firewall, Transit Gateway and Subnets. 
         - Deployment Account: network account
         - Deployment Region: Malaysia ap-southeast-5
         - CloudFormation script: "lz-central-network.json"
         - StackName: "lz-central-network"
-    - Note: Review the required "Network Access Control List" and "Firewall Policy" for Stateful to identify the rules to be set. Configuration of the Firewall Policies should be implemented using a separate CloudFormation script from the "lz-central-network.json".
+        - Parameters:
+            - Set TransitGatewayResourceShareTargets : arn:aws:organizations::{MANAGEMENT-ACCOUNT-ID}:ou/{ORGANIZATION-ID}/{INFRASTRUCTURE-OU-ID}
+    - Note: Review the required "Network Access Control List" and "Firewall Policy" for Stateful to identify the rules to be set. Review lz-central-network.json file to confirm the cidr range in SubnetConfig mapping. Please adjust according to customer's organizations requirements. Configuration of the Firewall Policies should be implemented using a separate CloudFormation script from the "lz-central-network.json".
 
-15. Delegate Firewall Manager security administration for centralized network management using policies and IPAM Manager. 
-    - Deployment Account: management account
-    - Deployment Region: N. Virginia us-east-1
-    - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
-    - StackName: "lz-delegate-firewall-manager-ipam"
-    - Parameters: 
-        - Set the DelegatedSecurityAdminAccount parameter to the AWS Control Tower audit account.
-        - Set the DelegatedIPAMAdminAccount to the network account.         
+15. Delegate Firewall Manager security administration for centralized network management using policies and IPAM Manager.
+    - Go to AWS Firewall Manager > Setting > Set **Audit** account id as Administrator accounts. 
+    - Run CloudFormation script:
+        - Deployment Account: management account
+        - Deployment Region: N. Virginia us-east-1
+        - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
+        - StackName: "lz-delegate-firewall-manager-ipam"
+        - Parameters: 
+            - Set the DelegatedSecurityAdminAccount parameter to the AWS Control Tower audit account.
+            - Set the DelegatedIPAMAdminAccount to the network account.         
 
 ## Post CloudFormation deployment configuration
 - ⚠️ **Recommendation:** Please seek assistance from an **AWS Partner** for planning or implementing the **Centralized Networking account**.
 
 1. Perform these configurations in central network account
-- Login into central network account > VPC > Network Firewall
+- **Login into Central Network account** > VPC > Network Firewall
 - Setup Firewall unmanaged rule group (Your rule group tab) (Stateful, Domain List, Strict Order)
 - Rule Name: Allow-Domains
 - Domain list: 
@@ -263,6 +293,7 @@ Key Policy
 .amazonaws.com
 .amazon.com
 ```
+- Set Capacity to 10000
 - Set the source IP range to CIDRs of AWS VPCs or 10.25.0.0/16
 
 2. Create a new unmanaged stateful firewall rule group (Stateful, Suricata format, Strict Order) 
@@ -277,7 +308,7 @@ Key Policy
 - Paste in the Suricata string from "network/firewall-suricata-rules.txt"
 
 3. Add these rules to the firewall policy
-- VPC > Network Firewall > Firewall Policies > Create firewall policy
+- VPC > Network Firewall > Firewall Policies > Select policy
 - Policy name: lz-central-network-StrictFirewallPolicy
 - Attached Stateful rule group, select `Allow-Domains` and `custom-suricata-rule-group` rule group
 - Go back to Network Firewall rule group > AWS managed rule group > Add rule group to policy
@@ -288,15 +319,16 @@ Key Policy
 - Priority sequence: Allow-Domains, ThreatSignaturesIOCStrictOrder, ThreatSignaturesExploitsStrictOrder, ThreatSignaturesMalwareWebStrictOrder, custom-suricata-rule-group
 
 4. Set route to Firewall Endpoints in Route Tables
-- Go to VPC -> Firewall -> click on Firewall name -> Firewall Endpoints, take note the AZ-A-Firewall-Endpoint-ID 
-    - Go to VPC -> Route Table -> search for the AZ-A-Firewall-Endpoint-ID 
-    - Check NetworkInspection-Pub-A -> go to Route tab -> Edit Routes -> Add route
-    - Destination: 10.0.0.0/8 Target: AZ-A-Firewall-Endpoint-ID 
-    - Check NetworkInspection-TgwAttach-A -> go to Route tab -> Edit Routes -> Add route
-    - Destination: 0.0.0.0/0 Target: AZ-A-Firewall-Endpoint-ID 
-- Repeat step above for AZ-B and AZ-C using details below
+- Go to VPC -> Firewall -> click on Firewall name -> Firewall Endpoints, take note the AZ-**A**-Firewall-Endpoint-ID 
+    - Go to VPC -> Route Table
+    - Check NetworkInspection-Pub-**A** -> go to Route tab -> Edit Routes -> Add route
+    - Destination: 10.0.0.0/8 Target: AZ-**A**-Firewall-Endpoint-ID 
+    - Check NetworkInspection-TgwAttach-**A** -> go to Route tab -> Edit Routes -> Add route
+    - Destination: 0.0.0.0/0 Target: AZ-**A**-Firewall-Endpoint-ID 
+- Repeat step above for AZ-**B** and AZ-**C**
 
 5. Set up Transit Gateway Attachment in Spoke/Member VPCs to Network-Transit-Gateway
+- ⚠️ **Recommendation:** Please seek assistance from an **AWS Partner** for planning or implementing the **Centralized Networking account**.
 
 6. Set route and propagation to Spoke/Member VPCs 
 - For Transit Gateway Route Table “Network-Main-Spoke” 
