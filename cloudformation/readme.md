@@ -234,10 +234,13 @@ Key Policy
 
 14. Setup centralized networking account.
     - ⚠️ **Recommendation:** Please seek assistance from an **AWS Partner** for planning or implementing the **Centralized Networking account**.
+    - Go to IAM Identity Center → Identify which existing IAM user will be assigned as the new “Central Network” account admin → Retrieve their email, first name, and last name.
     - Create a new "Central Network" account from Control Tower Account Factory.
         - Place the account under Infrastructure OU
-        - Create new Network Admin user (will use this user to further configure central network account in next steps)
-    - Delete the "default VPC" (aws-controltower-VPC) and its related network resources in the central network account before deploying the CloudFormation script. 
+        - Enter the email, first name, and last name of the existing user identified in the previous step. (This user will be used to configure the Central Network account in the next steps.)
+    - Wait until account creation finished
+    - Login into newly created Central Network account using IAM Identity Center SSO.
+    - Go to VPC > Ensure in Malaysia region > Delete the "default VPC" (aws-controltower-VPC) and its related network resources in the central network account before deploying the CloudFormation script. 
     - Obtain Management Account ID
         1. Login to **management account**
         2. Navigate to: **AWS Organizations** > **Organization Structure**
