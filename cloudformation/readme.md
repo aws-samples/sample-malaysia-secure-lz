@@ -133,10 +133,10 @@ Key Policy
 5. Enable Control Tower in management account in Malaysia ap-southeast-5 region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
     - Deployment Account: management account
     - Deployment Region: Malaysia ap-southeast-5
+    - Turn on automatic account enrollment 
     - Additional region for governance (for global services such as IAM, CloudFront, Route53): us-east-1
-    - Specify Region Deny, to only govern these regions (us-east-1, and ap-southeast-5)
-    - Foundational OU: Security 
-    - Additional OU: Opt out of creating OU
+    - Enable region deny control, to only govern these regions (us-east-1, and ap-southeast-5)
+    - Default OU for service integrations: Security OU
     - Create a new log-archive account and a new audit account as part of Control Tower implementation. 
     - Specify the KMS key id (alias "control-tower-key") for Control Tower encryption
     - Enable Organization-Level CloudTrail
