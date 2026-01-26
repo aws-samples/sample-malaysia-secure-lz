@@ -1,25 +1,39 @@
-# Malaysia Secure Landing Zone - Control Tower Upgrade Guide
+# Malaysia Secure Landing Zone - Upgrade & Change Log
 
-This guide is intended for customers who have already deployed the Malaysia Secure Landing Zone (SLZ) and need to upgrade AWS Control Tower. Before upgrading Control Tower, you must detach custom SLZ policies to prevent conflicts with Control Tower guardrails.
-
-## Overview
-
-AWS Control Tower upgrades may introduce new guardrails that could conflict with existing SLZ Service Control Policies (SCPs) and Resource Control Policies (RCPs). This guide walks you through safely detaching your SLZ policies before the upgrade.
+This document provides upgrade instructions and change log for existing Malaysia Secure Landing Zone (SLZ) deployments.
 
 ---
 
-## Identifying Custom SLZ Policies
+## Change Log
+
+| Date | Release | Description |
+|------|---------|-------------|
+| 30 January 2026 | [Control Tower Version 4.0 Upgrade](#30-january-2026---control-tower-version-40-upgrade) | Detach custom SLZ policies before upgrading to Control Tower v4.0 |
+
+---
+
+## Detailed Instructions
+
+### 30 January 2026 - Control Tower Version 4.0 Upgrade
+
+**Summary:** Before upgrading to AWS Control Tower version 4.0, you must detach custom SLZ policies to prevent conflicts with Control Tower guardrails.
+
+**Why this is needed:** AWS Control Tower upgrades may introduce new guardrails that could conflict with existing SLZ Service Control Policies (SCPs) and Resource Control Policies (RCPs).
+
+---
+
+#### Identifying Custom SLZ Policies
 
 The following are the custom SLZ policies that need to be detached before upgrading Control Tower.
 
-### Custom SLZ Service Control Policies (SCPs)
+**Custom SLZ Service Control Policies (SCPs):**
 
 | Policy Name | Description |
 |-------------|-------------|
 | `my-slz-guardrail` | Baseline guardrail policy for data protection and security controls |
 | `my-slz-approved-services` | Approved services guardrail policy limiting which AWS services can be used |
 
-### Custom SLZ Resource Control Policies (RCPs)
+**Custom SLZ Resource Control Policies (RCPs):**
 
 | Policy Name | Description |
 |-------------|-------------|
@@ -29,7 +43,7 @@ The following are the custom SLZ policies that need to be detached before upgrad
 
 ---
 
-## Step 1: Detach SCPs
+#### Step 1: Detach custom SLZ SCPs
 
 1. Go to **AWS Organizations** → **Policies** → **Service control policies**
 2. Click **`my-slz-guardrail`**
@@ -44,7 +58,7 @@ The following are the custom SLZ policies that need to be detached before upgrad
 
 ---
 
-## Step 2: Detach RCPs
+#### Step 2: Detach custom SLZ RCPs
 
 1. Go to **AWS Organizations** → **Policies** → **Resource control policies**
 2. Click **`my-slz-resource-guardrail`**
@@ -58,18 +72,20 @@ The following are the custom SLZ policies that need to be detached before upgrad
 
 ---
 
-## Step 3: Proceed with Control Tower Upgrade
+#### Step 3: Proceed with Control Tower Upgrade
 
 1. Go to **AWS Control Tower** console
+2. From side menu, click **Landing Zone setting**
 2. Click **Update** or follow the upgrade process
-3. Monitor upgrade completion
-4. Review any errors or warnings during the upgrade
+3. Turn on automatic account enrollment 
+4. Monitor upgrade completion
+5. Review any errors or warnings during the upgrade
 
 > **Note:** The upgrade process may take several minutes to complete. Do not navigate away from the console until the upgrade is finished.
 
 ---
 
-## Step 4: Post-Upgrade (After successful upgrade)
+#### Step 4: Post-Upgrade (After successful upgrade)
 
 1. **Review Control Tower guardrails** now in place
    - Go to Control Tower → Controls
@@ -85,4 +101,3 @@ The following are the custom SLZ policies that need to be detached before upgrad
    - Attach to production OUs once validated
 
 ---
-

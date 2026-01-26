@@ -29,7 +29,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 
 ## For Existing SLZ Users
 
-If you have already deployed the Malaysia Secure Landing Zone (SLZ) and need to upgrade AWS Control Tower, please refer to the **[Control Tower Upgrade Guide](docs/upgrade-control-tower.md)** for step-by-step instructions on safely detaching SLZ policies before upgrading.
+If you have already deployed the Malaysia Secure Landing Zone (SLZ) and need to upgrade AWS Control Tower version 4.0, please refer to the **[Control Tower Upgrade Guide](docs/upgrade.md)** for step-by-step instructions on safely detaching SLZ policies before upgrading.
 
 ---
 
