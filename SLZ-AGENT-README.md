@@ -1,117 +1,102 @@
-# Malaysia SLZ Deployment Agent (Preview)
+# Malaysia SLZ Validation Agent (Experiment)
 
 ## Overview
 
-Specialized Kiro agent for deploying the **Malaysia Secure Landing Zone (SLZ)** for public sector organizations. Follows the deployment workbook in `cloudformation/readme.md` and uses AWS MCP servers to automate validation, deployment, and compliance verification.
+**Validation agent** for the Malaysia Secure Landing Zone (SLZ). Performs compliance checks, prerequisite validation, and deployment readiness assessment. **Does NOT provision any AWS resources.**
 
 ## Quick Start
 
 ### Prerequisites
 
-**1. AWS Credentials Setup (REQUIRED)**
+**1. AWS Credentials Setup (Read-Only Access)**
 
-Configure AWS credentials before using the agent:
+Configure AWS credentials with read-only permissions:
 
 ```bash
-# Option 1: AWS Login (Latest & Recommended - AWS CLI v2.32.0+)
-aws login
-# Opens browser for authentication, valid for 12 hours
-# For cross-device: aws login --remote
-# To logout: aws logout
-
-# Option 2: AWS SSO Login (For IAM Identity Center users)
+# Option 1: AWS SSO Login (For IAM Identity Center users)
 aws configure sso
 aws sso login --profile your-sso-profile
-export AWS_PROFILE=your-sso-profile
 
-# Option 3: Configure with access keys (Legacy)
+# Option 2: Configure with access keys (Legacy)
 aws configure
-# Enter: Access Key ID, Secret Access Key, Region (ap-southeast-5), Output format (json)
 
 # Verify credentials
 aws sts get-caller-identity
 ```
 
-**Required IAM Permissions:**
-- For `aws login`: Attach `SignInLocalDevelopmentAccess` managed policy to IAM user/role
-- For deployments: Organizations, CloudFormation, IAM, KMS, Control Tower, GuardDuty, Security Hub, Inspector (Full access), S3 (Read/Write to template bucket)
+**Required IAM Permissions (Read-Only):**
+- Organizations: Describe*, List*, Get*
+- CloudFormation: Describe*, List*, Get*
+- IAM: Get*, List*
+- KMS: Describe*, List*, Get*
+- Control Tower: Describe*, List*, Get*
+- GuardDuty, Security Hub, Inspector: Get*, List*, Describe*
+- S3: List*, Get*
+- EC2, VPC: Describe*
+- STS: AssumeRole (for cross-account validation)
 
 ### Installation
 
 ```bash
 # Copy agent configuration
-cp malaysia-slz-deployment-agent.json ~/.kiro/agents/
+cp slz-validation-agent.json ~/.kiro/agents/
 
 # Start Kiro CLI in the SLZ repository
 cd /path/to/lza-for-ps-malaysia
 kiro-cli
 
 # Select the agent
-/agent swap slz-agent
+/agent swap slz-validation-agent
 
-# Start deployment
-"Help me deploy Malaysia Secure Landing Zone"
+# Start validation
+"Validate my AWS environment for SLZ deployment and come out with markdown report"
 ```
 
 ## What This Agent Does
 
-### 1. Automated Validation
-Uses `call_aws` to verify:
+### Multi-Account Validation
+SLZ deploys resources across multiple accounts. The agent validates:
+- **Management Account**: Organization, Control Tower, SCPs, RCPs, IAM Identity Center
+- **Log-Archive Account**: CloudTrail logs, S3 access logs, SSM session logs
+- **Audit Account**: GuardDuty (delegated admin), Security Hub, Inspector
+- **Network Account**: VPC, Transit Gateway, Network Firewall, VPC endpoints
+- **Shared Services Account**: Backup administration, IAM delegation
+- **Central Backup Account**: Backup vaults
+- **Member Accounts**: Account baseline (IAM password policy, EBS encryption, SSM)
+
+**Cross-Account Access Methods:**
+1. **IAM Identity Center (Recommended)**: User switches accounts via AWS access portal
+2. **AssumeRole**: Agent assumes OrganizationAccountAccessRole from management account
+3. **Manual Switch**: User re-authenticates to different accounts
+
+**If you encounter AssumeRole permission issues:**
+Use `aws sso login` to switch accounts manually and run validation per account:
+```bash
+# Validate management account
+aws sso login --profile management
+kiro-cli
+/agent swap slz-validation-agent
+"Validate management account"
+
+# Switch to audit account
+aws sso login --profile audit
+kiro-cli
+/agent swap slz-validation-agent
+"Validate audit account"
+
+# Repeat for each account: log-archive, network, shared-services, central-backup
+```
+
+### 1. Prerequisites Validation
+Checks if environment is ready for SLZ deployment:
 - AWS Organization structure
 - Regions enabled (ap-southeast-5, us-east-1)
 - Account status (no suspended accounts)
 - S3 bucket for templates
-- Existing resources
+- Existing security services status
 
-### 2. Deployment Guidance
-Follows `cloudformation/readme.md` step-by-step:
-1. Organization setup (lz-organization-setup.yaml)
-2. Control Tower enablement with KMS encryption
-3. Security service delegation (lz-delegate-security-services.yaml)
-4. Organization guardrails - SCPs and RCPs (lz-organization-guardrails.yaml)
-5. Account baseline via StackSet (lz-account-baseline.yaml)
-6. IAM Identity Center permission sets (lz-iam-idc-permissionsets.json)
-7. Central network setup (lz-central-network.json)
-8. Security services (GuardDuty, Security Hub, Inspector)
-9. Operations (SSM, Backup, CloudTrail)
-
-### 3. Upgrade & Maintenance Support
-Refers to `cloudformation/docs/upgrade.md` for:
-- Control Tower version upgrades (e.g., v4.0)
-- Policy detachment procedures before upgrades
-- Post-upgrade validation steps
-- Change log and release notes
-
-**Example upgrade scenario:**
-```
-User: "I need to upgrade Control Tower to v4.0"
-
-Agent:
-1. References cloudformation/docs/upgrade.md
-2. Identifies custom SLZ policies to detach
-3. [call_aws] Lists attached SCPs and RCPs
-4. Guides through detachment steps
-5. Monitors Control Tower upgrade
-6. Assists with post-upgrade validation
-```
-
-### 4. Real-Time Best Practices
-Uses `aws___search_documentation` to:
-- Search latest AWS documentation
-- Find Control Tower setup guides
-- Get Security Hub configuration steps
-- Troubleshoot CloudFormation errors
-- Check Control Tower upgrade procedures
-
-### 5. CloudFormation Deployment
-Uses `call_aws` to:
-- Deploy stacks with correct parameters
-- Monitor deployment progress
-- Check stack events for errors
-- Verify resources created
-
-### 6. CGSO Compliance Verification
-Validates all 9 security domains:
+### 2. CGSO Compliance Assessment
+Validates compliance with 9 security domains:
 - Identity Access Management (7.8.1, 7.5.7)
 - Data Sovereignty (7.1.1, 7.2.1, 12.7.1)
 - Data Protection (7.1.3, 12.1.1)
@@ -122,167 +107,66 @@ Validates all 9 security domains:
 - Vulnerability Management (7.5.7, 12.4.2)
 - Backup (7.5.5)
 
-## CloudFormation Templates
+### 3. Existing Deployment Validation
+For deployed SLZ environments across all accounts:
+- CloudFormation stacks status
+- Control Tower landing zone status
+- Security services configuration
+- SCPs and RCPs attachments
+- IAM Identity Center setup
+- Network resources
+- Encryption settings
+- Backup policies
 
-All templates in `cloudformation/` directory:
+### 4. Upgrade Readiness Assessment
+For Control Tower upgrades:
+- Identify custom SLZ policies
+- Check policy attachments
+- Validate Control Tower version
+- Assess upgrade impact
 
-**Organization & Governance:**
-- lz-organization-setup.yaml
-- lz-organization-guardrails.yaml
-- lz-organization-scp-guardrails.json
-- lz-organization-scp-approved-services.json
-- lz-organization-rcp-guardrails.json
+### 5. Gap Analysis
+Identifies missing or misconfigured resources:
+- Required vs actual OUs
+- Missing security services
+- Unencrypted resources
+- Non-compliant configurations
 
-**Security:**
-- lz-delegate-security-services.yaml (StackSet)
-- lz-audit-guardduty.yaml
-- lz-audit-guardduty-notifications.yaml
-- lz-audit-access-analyzer.json
-- lz-delegate-firewall-manager-ipam.yaml
+## What This Agent CANNOT Do
 
-**Identity & Access:**
-- lz-iam-idc-permissionsets.json
-- lz-account-baseline.yaml (StackSet)
+❌ Create, update, or delete AWS resources  
+❌ Deploy CloudFormation stacks  
+❌ Attach or detach policies  
+❌ Enable or disable services  
+❌ Modify configurations   
 
-**Network:**
-- lz-central-network.json
-- lz-account-vpc-template.yaml
-- network/firewall-suricata-rules.txt
-- network/dns-malicious-domains.txt
+## What This Agent CAN Do
 
-## MCP Tools Used
+✅ Validate prerequisites  
+✅ Check CGSO compliance  
+✅ Assess deployment readiness  
+✅ Identify gaps and issues  
+✅ Provide recommendations  
+✅ Reference documentation  
+✅ Explain requirements  
+✅ Generate validation reports  
+✅ Save validation reports to local files  
 
-### AWS API Server (`call_aws`)
+## Saving Validation Reports
 
-### AWS Knowledge Server
+The agent can save validation reports to your local directory:
 
-
-## Example Interactions
-
-### Starting Fresh Deployment
-```
-User: "Help me deploy Malaysia SLZ from scratch"
-
-Agent:
-1. [call_aws] Validates Organization: ✓ o-abc123xyz
-2. [call_aws] Checks regions: ✓ ap-southeast-5 enabled
-3. [call_aws] Lists accounts: 5 accounts found
-4. [aws___search_documentation] Searches: "Control Tower setup"
-5. Guides through prerequisites checklist
-6. [call_aws] Collects Organization Root ID
-7. Provides CloudFormation deployment command
-8. [call_aws] Monitors stack creation
-9. Verifies completion and guides to next step
-```
-
-### Troubleshooting Failed Stack
-```
-User: "My lz-organization-setup stack failed"
-
-Agent:
-1. [call_aws] Gets stack events and failure reason
-2. [aws___search_documentation] Searches for error solution
-3. Identifies root cause (e.g., missing KMS permissions)
-4. Provides corrected configuration
-5. Guides through retry process
+```bash
+# Reports are saved to current working directory
+# Example: validation-report-2026-02-21.md
 ```
 
-### Compliance Verification
-```
-User: "Verify CGSO compliance"
-
-Agent:
-1. [call_aws] Checks IAM password policy: ✓
-2. [call_aws] Verifies region deny SCP: ✓
-3. [call_aws] Confirms EBS encryption: ✓
-4. [call_aws] Validates CloudTrail: ✓
-5. [call_aws] Checks GuardDuty: ✓
-6. [call_aws] Verifies Security Hub: ✓
-7. Reports: "All CGSO domains compliant"
-```
-
-## Cost Estimation
-
-Baseline (8 accounts): **$2,000-2,500/month**
-
-- Control Tower: $400
-- GuardDuty: $300
-- Network Firewall: $500
-- Security Hub: $150
-- Transit Gateway: $150
-- VPC Endpoints: $200
-- CloudTrail: $75
-- Config: $150
-- Others: $100
-
-Reference: `cloudformation/malaysia_slz_cost_estimation_simple.md`
-
-## Agent Configuration
-
-**File:** `malaysia-slz-deployment-agent.json`
-
-**MCP Servers:**
-- `awslabs.aws-api-mcp-server` - AWS CLI execution (auto-approve: call_aws)
-- `aws-knowledge-mcp` - AWS documentation (auto-approve: aws___search_documentation, aws___read_documentation, aws___get_regional_availability)
-
-**Resources:**
-- cloudformation/readme.md - Primary deployment guide
-- cloudformation/docs/upgrade.md - Upgrade procedures and change log
-- All CloudFormation templates
-- Network configuration files
-- Cost estimation report
-- This README
-
-## Workflow Pattern
-
-1. **Read deployment guide** - Reference `cloudformation/readme.md`
-2. **Validate prerequisites** - Use `call_aws` to check AWS resources
-3. **Search best practices** - Use `aws___search_documentation`
-4. **Collect parameters** - Use `call_aws` to get IDs and ARNs
-5. **Deploy CloudFormation** - Use `call_aws` with template
-6. **Monitor progress** - Use `call_aws describe-stack-events`
-7. **Verify completion** - Use `call_aws` to validate resources
-8. **Guide to next step** - Reference next step in readme.md
-
-## Key Principles
-
-- ✅ **Follow cloudformation/readme.md** - Authoritative deployment guide
-- ✅ **Use MCP tools** - Validate and deploy via AWS APIs
-- ✅ **Deploy sequentially** - Don't skip steps
-- ✅ **Verify each phase** - Check resources before proceeding
-- ✅ **CGSO compliance** - Validate all security domains
-- ✅ **Recommend AWS Partner** - For complex network design
-
-## Troubleshooting
-
-### Common Issues
-
-**CloudFormation stack failed:**
-1. Get stack events: `call_aws describe-stack-events`
-2. Search for solution: `aws___search_documentation`
-3. Check Lambda logs if applicable
-4. Provide remediation steps
-
-**StackSet deployment failed:**
-1. Check StackSet operations
-2. Delete remaining CloudWatch Log Groups
-3. Retry with corrected parameters
-
-**Control Tower enrollment failed:**
-1. Check for suspended accounts
-2. Verify SCP attachments removed
-3. Validate account email addresses
-
-## Support Resources
-
-- **Deployment Guide**: `cloudformation/readme.md`
-- **Cost Estimation**: `cloudformation/malaysia_slz_cost_estimation_simple.md`
-- **AWS Control Tower**: [User Guide](https://docs.aws.amazon.com/controltower/latest/userguide/)
-- **AWS Organizations**: [User Guide](https://docs.aws.amazon.com/organizations/latest/userguide/)
+**Report formats available:**
+- Markdown (.md) - Human-readable format
 
 ## Version Information
 
 - **Regions**: ap-southeast-5 (Malaysia), us-east-1 (N. Virginia)
 - **CGSO Guidelines**: Malaysia public sector requirements
-- **Templates**: 18 CloudFormation templates in `cloudformation/`
+- **Agent Type**: Read-only validation
 - **Agent Version**: 1.0.0
