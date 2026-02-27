@@ -46,6 +46,7 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
     - Firewall Manager: centralized network configuration management for security groups, and WAF by policy enforcement
     - BACKLOG: Detective (pending availability in region)
 4. IAM: Control Tower IAM Identity Center with identity federation to organization's Identity Provider (IdP). 
+    - Single-Sign-On experience across multiple AWS accounts and applications.
     - IAM Access Analyzer with Zone of Trust to "Organization" 
     - Organization Central Root management
 5. Network: central network account, with ANFW and Route53 DNS Firewall, TGW and centralized VPC endpoints
