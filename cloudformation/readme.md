@@ -27,6 +27,12 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 | Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | Manual Configuration |
 
 
+## For Existing SLZ Users
+
+If you have already deployed the Malaysia Secure Landing Zone (SLZ) and need to upgrade AWS Control Tower version 4.0, please refer to the **[Control Tower Upgrade Guide](docs/upgrade.md)** for step-by-step instructions on safely detaching SLZ policies before upgrading.
+
+---
+
 ## Prerequisites:
 Complete these validation checks before starting the deployment of the SLZ. 
 1. AWS management account has been created. 
@@ -133,10 +139,10 @@ Key Policy
 5. Enable Control Tower in management account in Malaysia ap-southeast-5 region. Follow these instructions from [AWS Control Tower quick start guide](https://docs.aws.amazon.com/controltower/latest/userguide/quick-start.html)
     - Deployment Account: management account
     - Deployment Region: Malaysia ap-southeast-5
+    - Turn on automatic account enrollment 
     - Additional region for governance (for global services such as IAM, CloudFront, Route53): us-east-1
-    - Specify Region Deny, to only govern these regions (us-east-1, and ap-southeast-5)
-    - Foundational OU: Security 
-    - Additional OU: Opt out of creating OU
+    - Enable region deny control, to only govern these regions (us-east-1, and ap-southeast-5)
+    - Default OU for service integrations: Security OU
     - Create a new log-archive account and a new audit account as part of Control Tower implementation. 
     - Specify the KMS key id (alias "control-tower-key") for Control Tower encryption
     - Enable Organization-Level CloudTrail
