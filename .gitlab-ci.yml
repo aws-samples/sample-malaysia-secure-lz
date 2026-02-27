@@ -30,10 +30,11 @@ secret-scan:
 # ─────────────────────────────────────────────
 publish-to-github:
   stage: publish
-  image: alpine/git:latest
+  image: alpine:latest
   needs:
     - secret-scan
   before_script:
+    - apk add --no-cache git
     - git config --global user.email "kuokk@amazon.com"
     - git config --global user.name "Kim Kuok Chiang"
     - git remote add github "${GITHUB_REPO}" || git remote set-url github "${GITHUB_REPO}"
