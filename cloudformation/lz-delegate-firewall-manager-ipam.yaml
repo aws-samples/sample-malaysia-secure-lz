@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Set delegated administration account for AWS Firewall Manager and IPAM. Deploy only in us-east-1, because Firewall Manager is a global service."
+Description: "Set delegated administration account for AWS IP Address Manager. Deploy only in us-east-1, because Firewall Manager is a global service."
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -14,8 +14,6 @@ Metadata:
             - DelegatedIPAMAdminAccount
             - IPAMManager
     ParameterLabels:
-      FirewallManager:
-        default: "FirewallManager"
       DelegatedIPAMAdminAccount:
         default: "Fill in Network Account"
       IPAMManager:
