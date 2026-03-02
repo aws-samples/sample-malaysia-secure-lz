@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Nested stack for Malaysia SLZ guardrails - combines baseline Service Control Policy guardrails, approved services, AI services optout and Resource Control policies"
+Description: "Nested stack for Malaysia SLZ guardrails - combines baseline Service Control Policy guardrails, approved services, declarative policies for EC2, AI services optout and Resource Control policies"
 
 Parameters:
   S3BucketName:
