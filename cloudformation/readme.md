@@ -305,15 +305,16 @@ Key Policy
             - Set TransitGatewayResourceShareTargets : arn:aws:organizations::{MANAGEMENT-ACCOUNT-ID}:ou/{ORGANIZATION-ID}/{INFRASTRUCTURE-OU-ID}
     - Note: Review the required "Network Access Control List" and "Firewall Policy" for Stateful to identify the rules to be set. Review lz-central-network.json file to confirm the cidr range in SubnetConfig mapping. Please adjust according to customer's organizations requirements. Configuration of the Firewall Policies should be implemented using a separate CloudFormation script from the "lz-central-network.json".
 
-15. Delegate Firewall Manager security administration for centralized network management using policies and IPAM Manager.
+15. Delegate Firewall Manager security administration for centralized network management using policies.
     - Go to AWS Firewall Manager > Setting > Set **Audit** account id as Administrator accounts. 
+
+16. Delegate administrator account for AWS IP Address Manager (IPAM).
     - Run CloudFormation script:
         - Deployment Account: management account
         - Deployment Region: N. Virginia us-east-1
         - CloudFormation script: "lz-delegate-firewall-manager-ipam.yaml"
         - StackName: "lz-delegate-firewall-manager-ipam"
         - Parameters: 
-            - Set the DelegatedSecurityAdminAccount parameter to the AWS Control Tower audit account.
             - Set the DelegatedIPAMAdminAccount to the network account.         
 
 ## Post CloudFormation deployment configuration
