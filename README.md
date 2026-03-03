@@ -18,20 +18,22 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
 | Network Security | AWS Network Firewall with IPS (as Suricata rules) | 12.4.2 | lz-central-network.json |
 | Network Security | AWS Route53 DNS Resolver Firewall | 12.4.2 | PENDING |
 | Network Security | Centralized VPC interface endpoints (S3, DynamoDB, KMS, CloudWatch Log, Secrets Manager, EC2, SSM, SSM-Messages, ECR, GuardDuty)  | 7.1.3, 7.5.1 | lz-central-network.json |
-| Security Assurance | Security Hub | 7.5.7, 12.1.2, 12.1.3, 12.1.5 | Manual Configuration |
+| Security Assurance | Security Hub | 7.5.7, 12.1.2, 12.1.3, 12.1.5 | Manual Configuration and Organization Security Hub Policy |
 | Logging and Monitoring | Organization CloudTrail (multi-region, management events), as part of Control Tower | 7.3.1, 7.5.4, 12.3.3 | Manual Configuration | 
 | Logging and Monitoring | SSM Session Manager | 7.3.1, 7.5.4 | lz-account-baseline.yaml |
 | Logging and Monitoring | S3 Access Logs | 7.3.1 | PENDING |  
-| Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | lz-audit-guardduty.yaml, lz-audit-guardduty-notifications.yaml |
-| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Manual Configuration |
+| Threat Detection | Amazon GuardDuty | 7.5.7, 12.4.2 | Organization Security Hub Policy, lz-audit-guardduty-notifications.yaml |
+| Vulnerability Management | Amazon Inspector | 7.5.7, 12.4.2 | Organization Inspector Policy |
 | Backup | Control Tower, Backup Vault and backup policies | 7.5.5 | Manual Configuration |
 
 
 ## Feature Components
 1. Management: AWS Organization and Control Tower
     - Service Control Policy: region deny, enforce data encryption for data resources, and restrict access to approved AWS services.
-    - Resource Policy: enforce TLS connections, prevent cross deputy
-    - (optional) Control Tower Proactive controls can be configured by the customer
+    - Resource Policy: enforce TLS connections for S3, prevent cross deputy, enforce access to STS, SQS, KMS and Secrets Manager are from IAM principals of own organization.
+    - Declarative Policy for EC2: set default settings for IMDSv2, block public access for EBS snapshots and AMI.
+    - AI Services Opt-Out Policy: set opt-out for your organization out of having its content used for service improvement AI services.
+    - (optional) Control Tower Proactive controls can be configured by the customer.
 2. Logging: Control Tower using log-archive account
     - Organization CloudTrail
     - S3 Access Logs
@@ -40,13 +42,12 @@ The Secure Landing Zone (SLZ) is for Malaysia public sector ministries, agencies
     - BACKLOG: VPC Flow Logs
 3. Security: Control Tower using audit account as the delegated security admin for GuardDuty, and Security Hub
     - Threat Detection: GuardDuty
-    - Compliance Monitoring: Security Hub and Config
+    - Compliance Monitoring: Security Hub CSPM and Config
     - Security Alert Notification: SNS Topic
     - Vulnerability Patch Management: Inspector, with SSM Patch Manager Security Baseline
     - Firewall Manager: centralized network configuration management for security groups, and WAF by policy enforcement
     - BACKLOG: Detective (pending availability in region)
 4. IAM: Control Tower IAM Identity Center with identity federation to organization's Identity Provider (IdP). 
-    - Single-Sign-On experience across multiple AWS accounts and applications.
     - IAM Access Analyzer with Zone of Trust to "Organization" 
     - Organization Central Root management
 5. Network: central network account, with ANFW and Route53 DNS Firewall, TGW and centralized VPC endpoints
