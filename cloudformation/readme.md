@@ -386,11 +386,11 @@ Key Policy
     - Create policy. 
 
 3. Enable **Security Hub CSPM** in Audit account for all the governed regions. Create a new Security Hub Central Configuration Policy in **"us-east-1"** that enabled "AWS Foundation Security Standards" across the governed regions (us-east-1, and ap-southeast-5). 
-    - Security Hub --> Settings --> Regions
+    - Security Hub CSPM --> Settings --> Regions
         - Enable Cross-Region aggregation.
         - Choose Home Region: us-east-1
         - Choose Linked Regions: ap-southeast-5
-    - Security Hub --> Settings --> Configuration
+    - Security Hub CSPM --> Settings --> Configuration
         - Select "Start central configuration"
         - Choose Home Region: us-east-1
         - Choose Linked Regions: ap-southeast-5 
