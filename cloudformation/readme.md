@@ -135,7 +135,7 @@ Key Policy
                   Set the S3BucketName parameter to the bucket name created in Prerequisites section Step no.13
     - NOTE: Do not change the stack-name to avoid conflict with following deployment steps.                  
 
-3. For the Control Tower Backup key, ensure to create a new replica key in us-east-1 and any other additional governed region. Go to KMS console, select the "control-tower-backup-key", go to "Regionality" and "Create new replica keys" for us-east-1.
+3. For the Control Tower Backup key, ensure to create a new replica key in us-east-1 and any other additional governed region. Go to KMS console, select the "control-tower-backup-key", go to "Regionality" and "Create new replica keys" for us-east-1 and any other additional region.
 
 4. Enable AWS Organization Central Root Management. Go to IAM console, select "Account settings", and go to the section "Centralized root access for member accounts", and select "Enable". 
     - Enable these capabilities 1) Root credentials management, and 2) Privileged root actions in member accounts.
