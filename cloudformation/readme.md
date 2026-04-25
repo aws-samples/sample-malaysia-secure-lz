@@ -260,7 +260,7 @@ Key Policy
 | SLZAdministratorAccess | AdministratorAccess | Used by Cloud Platform Administrator team to work in accounts. |
 | SLZProductionSupportAccess | PowerUserAccess | Used by Production Support team to work in production accounts. |
 | SLZDeveloperAccess | ReadOnlyAccess, AmazonQDeveloperAccess, AWSCodeBuildDeveloperAccess, AmazonEC2FullAccess, AmazonS3FullAccess, AmazonDynamoDBFullAccess, AWSLambda_FullAccess, AmazonRDSFullAccess. AmazonSageMakerFullAccess, AmazonCloudWatchEvidentlyFullAccess | Used by Developers to work productively in development accounts. |
-| SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
+| SLZSecurityAccess | ReadOnlyAccess, AmazonGuardDutyFullAccess_v2, AWSSecurityHubFullAccess, AmazonDetectiveFullAccess, AmazonInspector2FullAccess_v2, AWSWAFConsoleFullAccess, AmazonAthenaFullAccess | Used by Security team to work productively on security services. | 
 
 14. Setup centralized networking account.
     - ⚠️ **Recommendation:** Please seek assistance from an **AWS Partner** for planning or implementing the **Centralized Networking account**.
