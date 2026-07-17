@@ -32,7 +32,7 @@ To ensure accuracy, customers should:
 
 ### AWS Pricing Calculator Template
 For customized cost estimation, use our pre-configured AWS Pricing Calculator template:
-**Pricing Template URL**: https://calculator.aws/#/estimate?id=7e7f7287bfc0ca796ef3b2089dc79129cba00b2a
+**Pricing Template URL**: https://calculator.aws/#/estimate?id=ac7b516ef222dcf7768ffe812b238aaa5df38757
 
 Use the template as a starting point and adjust service quantities to match your organization's requirements and expected workload profile.
 
