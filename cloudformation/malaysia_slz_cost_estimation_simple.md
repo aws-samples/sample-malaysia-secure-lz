@@ -32,9 +32,9 @@ To ensure accuracy, customers should:
 
 ### AWS Pricing Calculator Template
 For customized cost estimation, use our pre-configured AWS Pricing Calculator template:
-**Pricing Template URL**: https://calculator.aws/#/estimate?id=ca47f4f843a596e04244170c9b031a1cdf0a62a7
+**Pricing Template URL**: https://calculator.aws/#/estimate?id=7e7f7287bfc0ca796ef3b2089dc79129cba00b2a
 
-Note: the calculator template includes workload usage assumptions (EC2 fleet, firewall traffic, backup volumes) on top of the setup baseline in this report, so its total is higher. Use it as a starting point and adjust quantities to your expected workload profile.
+Use the template as a starting point and adjust service quantities to match your organization's requirements and expected workload profile.
 
 ## Assumptions
 - Minimum setup with 8 core AWS accounts:
